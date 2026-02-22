@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#130b1d"/>
+      <stop offset="60%" stop-color="#1b1130"/>
+      <stop offset="100%" stop-color="#100818"/>
+    </linearGradient>
+    <linearGradient id="sun" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ff8adf"/>
+      <stop offset="100%" stop-color="#ff4fc6"/>
+    </linearGradient>
+    <pattern id="grid" width="48" height="32" patternUnits="userSpaceOnUse">
+      <path d="M 48 0 L 0 0 0 32" fill="none" stroke="#5f3a91" stroke-width="1"/>
+    </pattern>
+  </defs>
+
+  <rect width="1600" height="1000" fill="url(#bg)"/>
+  <circle cx="800" cy="300" r="150" fill="url(#sun)" opacity="0.8"/>
+
+  <rect x="0" y="520" width="1600" height="480" fill="#0f0a1a"/>
+  <polygon points="0,1000 1600,1000 1050,520 550,520" fill="url(#grid)" opacity="0.65"/>
+
+  <line x1="0" y1="520" x2="1600" y2="520" stroke="#a16be0" stroke-width="2" opacity="0.8"/>
+</svg>

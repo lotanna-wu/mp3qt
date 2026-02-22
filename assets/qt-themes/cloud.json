@@ -1,0 +1,27 @@
+{
+  "meta": {"name": "Cloud Desk", "version": 1, "author": "mp3-player"},
+  "palette": {
+    "window_bg": "#dfe5ec",
+    "panel_bg": "#ced6e0",
+    "input_bg": "#f8fbff",
+    "muted_bg": "#c6ceda",
+    "text": "#263447",
+    "muted_text": "#3f5168",
+    "border": "#79879a",
+    "accent": "#6a7f9f",
+    "accent_text": "#f7f9fc",
+    "play": "#5f8a57",
+    "play_hover": "#78a96e",
+    "accent_hover": "#8598b3",
+    "selection_bg": "#6a7f9f",
+    "selection_text": "#f8faff",
+    "status_info": "#3d5f8f",
+    "status_success": "#3f7346",
+    "status_error": "#9b3647"
+  },
+  "typography": {"font_family": "Tahoma", "font_size": 10, "title_font_size": 10, "list_font_size": 10},
+  "metrics": {"window_width": 860, "window_height": 560, "padding": 12, "spacing": 8, "border_width": 1, "button_border_width": 1, "radius": 0, "album_art_width": 280, "album_art_height": 280},
+  "effects": {"field_shadow": "raised", "status_shadow": "raised"},
+  "images": {"window_bg": ""},
+  "qss": ""
+}

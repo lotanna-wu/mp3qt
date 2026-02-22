@@ -38,15 +38,15 @@ DEFAULT_THEME = {
         "list_font_size": 10,
     },
     "metrics": {
-        "window_width": 920,
-        "window_height": 620,
+        "window_width": 860,
+        "window_height": 560,
         "padding": 12,
         "spacing": 8,
         "border_width": 1,
         "button_border_width": 1,
         "radius": 0,
-        "album_art_width": 300,
-        "album_art_height": 300,
+        "album_art_width": 260,
+        "album_art_height": 260,
     },
     "effects": {
         "field_shadow": "sunken",
@@ -72,7 +72,9 @@ def _merge_dict(base, override):
 class ThemeManager:
     def __init__(self, project_root):
         self.project_root = project_root
-        self.theme_dir = os.path.join(project_root, "qt-themes")
+        assets_theme_dir = os.path.join(project_root, "assets", "qt-themes")
+        legacy_theme_dir = os.path.join(project_root, "qt-themes")
+        self.theme_dir = assets_theme_dir if os.path.isdir(assets_theme_dir) else legacy_theme_dir
         self.default_theme_path = os.path.join(self.theme_dir, "default.json")
 
     def load_theme(self, theme_path):
@@ -228,6 +230,42 @@ QMenuBar {{
 QMenu {{
     background-color: {p['panel_bg']};
     border: {border}px solid {p['border']};
+}}
+QScrollBar:vertical {{
+    background: {p['window_bg']};
+    width: 12px;
+    margin: 0;
+}}
+QScrollBar::handle:vertical {{
+    background: {p['accent']};
+    border: {border}px solid {p['border']};
+    min-height: 24px;
+}}
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {{
+    background: {p['panel_bg']};
+    border: {border}px solid {p['border']};
+    height: 12px;
+}}
+QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {{
+    background: {p['muted_bg']};
+}}
+QScrollBar:horizontal {{
+    background: {p['window_bg']};
+    height: 12px;
+    margin: 0;
+}}
+QScrollBar::handle:horizontal {{
+    background: {p['accent']};
+    border: {border}px solid {p['border']};
+    min-width: 24px;
+}}
+QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {{
+    background: {p['panel_bg']};
+    border: {border}px solid {p['border']};
+    width: 12px;
+}}
+QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal {{
+    background: {p['muted_bg']};
 }}
 QSlider::groove:horizontal {{
     border: {border}px solid {p['border']};
