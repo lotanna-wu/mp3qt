@@ -237,14 +237,18 @@ class MusicPlayer(QMainWindow):
 
     def choose_theme_file(self):
         start_dir = self.theme_manager.theme_dir
-        selected, _ = QFileDialog.getOpenFileName(
-            self,
-            "Load Theme File",
-            start_dir,
-            "Theme JSON (*.json)",
+        dialog = self._create_themed_file_dialog(
+            title="Load Theme File",
+            directory=start_dir,
         )
-        if not selected:
+        dialog.setFileMode(QFileDialog.FileMode.ExistingFile)
+        dialog.setNameFilter("Theme JSON (*.json)")
+        if not dialog.exec():
             return
+        selected_files = dialog.selectedFiles()
+        if not selected_files:
+            return
+        selected = selected_files[0]
         self.apply_theme_from_path(selected, persist=True)
 
     def reload_current_theme(self):
@@ -314,9 +318,26 @@ class MusicPlayer(QMainWindow):
             widget.setFrameShadow(QFrame.Shadow.Sunken)
 
     def browse_folder(self):
-        folder = QFileDialog.getExistingDirectory(self, "Select Music Folder")
-        if folder:
-            self.set_folder(folder)
+        start_dir = self.current_folder if self.current_folder else os.path.expanduser("~")
+        dialog = self._create_themed_file_dialog(
+            title="Select Music Folder",
+            directory=start_dir,
+        )
+        dialog.setFileMode(QFileDialog.FileMode.Directory)
+        dialog.setOption(QFileDialog.Option.ShowDirsOnly, True)
+        if not dialog.exec():
+            return
+        selected_files = dialog.selectedFiles()
+        if selected_files:
+            self.set_folder(selected_files[0])
+
+    def _create_themed_file_dialog(self, title, directory):
+        dialog = QFileDialog(self, title, directory)
+        # Use Qt's dialog implementation so stylesheet and contrast stay consistent.
+        dialog.setOption(QFileDialog.Option.DontUseNativeDialog, True)
+        dialog.setStyleSheet(self.styleSheet())
+        dialog.setFont(self.font())
+        return dialog
 
     def set_folder(self, folder, show_status=True):
         if not folder or not os.path.isdir(folder):
