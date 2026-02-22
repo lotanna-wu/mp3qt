@@ -1,0 +1,27 @@
+{
+  "meta": {"name": "Blue Terminal", "version": 1, "author": "mp3-player"},
+  "palette": {
+    "window_bg": "#102040",
+    "panel_bg": "#1a2f59",
+    "input_bg": "#0a1630",
+    "muted_bg": "#111f40",
+    "text": "#d9e5ff",
+    "muted_text": "#8aa0d6",
+    "border": "#4a5d8a",
+    "accent": "#2a7dff",
+    "accent_text": "#eaf2ff",
+    "play": "#2f8f50",
+    "play_hover": "#43b266",
+    "accent_hover": "#539bff",
+    "selection_bg": "#2a7dff",
+    "selection_text": "#f4f8ff",
+    "status_info": "#7fb4ff",
+    "status_success": "#7adf8f",
+    "status_error": "#ff8c9e"
+  },
+  "typography": {"font_family": "Lucida Console", "font_size": 10, "title_font_size": 10, "list_font_size": 10},
+  "metrics": {"window_width": 920, "window_height": 620, "padding": 10, "spacing": 8, "border_width": 1, "button_border_width": 1, "radius": 0, "album_art_width": 280, "album_art_height": 280},
+  "effects": {"field_shadow": "sunken", "status_shadow": "raised"},
+  "images": {"window_bg": ""},
+  "qss": ""
+}

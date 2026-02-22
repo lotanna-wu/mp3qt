@@ -1,6 +1,7 @@
 build/*
 dist/*
 tools/ffmpeg.exe
+.DS_Store
 .venv
 icons/*
 __pycache__/
