@@ -56,7 +56,7 @@ class MusicPlayer(QMainWindow):
 
     def __init__(self, initial_folder=None):
         super().__init__()
-        self.setWindowTitle("MP3 Player (Qt)")
+        self.setWindowTitle("MP3 Qt")
 
         icon_path = get_resource_path(os.path.join("assets", "mp3-logo.png"))
         if os.path.isfile(icon_path):
@@ -308,6 +308,12 @@ class MusicPlayer(QMainWindow):
         self._apply_field_shadow(self.folder_label, theme["effects"].get("field_shadow", "sunken"))
         self._apply_field_shadow(self.current_song_label, theme["effects"].get("field_shadow", "sunken"))
         self._apply_field_shadow(self.status_label, theme["effects"].get("status_shadow", "raised"))
+
+        # forgot i need to rerender the album art 
+        if self.current_song_name and self.current_folder:
+            song_path = os.path.join(self.current_folder, self.current_song_name)
+            if os.path.isfile(song_path):
+                self.update_album_art(song_path)
 
         # force full layout recalculation before showing
         self.centralWidget().updateGeometry()

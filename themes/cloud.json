@@ -20,7 +20,7 @@
     "status_error": "#9b3647"
   },
   "typography": {"font_family": "Tahoma", "font_size": 10, "title_font_size": 10, "list_font_size": 10},
-  "metrics": {"window_width": 860, "window_height": 560, "padding": 12, "spacing": 8, "border_width": 1, "button_border_width": 1, "radius": 0, "album_art_width": 280, "album_art_height": 280},
+  "metrics": {"window_width": 860, "window_height": 560, "padding": 12, "spacing": 8, "border_width": 1, "button_border_width": 1, "radius": 8, "album_art_width": 280, "album_art_height": 280},
   "effects": {"field_shadow": "raised", "status_shadow": "raised"},
   "images": {"window_bg": ""},
   "qss": ""
