@@ -3,6 +3,6 @@ Type=Application
 Name=MP3 Qt
 Comment=Play local MP3 files
 Exec=${INSTALL_DIR}/mp3qt
-Icon=mp3-player
+Icon=mp3qt
 Terminal=false
 Categories=AudioVideo;Player;

@@ -1,5 +1,9 @@
 {
-  "meta": {"name": "Cloud Desk", "version": 1, "author": "mp3-player"},
+  "meta": {
+    "name": "Cloud Desk",
+    "version": 2,
+    "author": "mp3-player"
+  },
   "palette": {
     "window_bg": "#dfe5ec",
     "panel_bg": "#ced6e0",
@@ -19,9 +23,29 @@
     "status_success": "#3f7346",
     "status_error": "#9b3647"
   },
-  "typography": {"font_family": "Tahoma", "font_size": 10, "title_font_size": 10, "list_font_size": 10},
-  "metrics": {"window_width": 860, "window_height": 560, "padding": 12, "spacing": 8, "border_width": 1, "button_border_width": 1, "radius": 8, "album_art_width": 280, "album_art_height": 280},
-  "effects": {"field_shadow": "raised", "status_shadow": "raised"},
-  "images": {"window_bg": ""},
-  "qss": ""
+  "typography": {
+    "font_family": "Tahoma",
+    "font_size": 10,
+    "title_font_size": 10,
+    "list_font_size": 10
+  },
+  "metrics": {
+    "window_width": 500,
+    "window_height": 320,
+    "padding": 10,
+    "spacing": 8,
+    "border_width": 1,
+    "button_border_width": 1,
+    "radius": 8,
+    "album_art_width": 200,
+    "album_art_height": 200
+  },
+  "effects": {
+    "field_shadow": "raised",
+    "status_shadow": "raised"
+  },
+  "images": {
+    "window_bg": ""
+  },
+  "qss": "\n#rootWidget {\n    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,\n        stop:0 #e8eef5, stop:1 #d5dde8);\n}\n\n/* ── Playlist ── */\nQListWidget {\n    background-color: #f2f6fa;\n    border: 1px solid #8a9ab0;\n    border-radius: 8px;\n    padding: 4px;\n    outline: none;\n}\nQListWidget::item {\n    padding: 5px 8px;\n    border-radius: 5px;\n    color: #263447;\n}\nQListWidget::item:hover {\n    background-color: #dce6f0;\n    color: #1a2b3d;\n}\nQListWidget::item:selected {\n    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,\n        stop:0 #7a91b0, stop:1 #5a7290);\n    color: #f8faff;\n    border-radius: 5px;\n}\n\n/* ── Inputs ── */\nQLineEdit {\n    background-color: #f8fbff;\n    border: 1px solid #8a9ab0;\n    border-radius: 6px;\n    padding: 4px 8px;\n    selection-background-color: #6a7f9f;\n    selection-color: #f8faff;\n}\nQLineEdit:focus {\n    border: 1px solid #5a7290;\n    background-color: #ffffff;\n}\n\n/* ── Field labels (folder, now playing) ── */\n#folderLabel, #songLabel {\n    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,\n        stop:0 #d8e2ec, stop:1 #c8d4e0);\n    border: 1px solid #8a9ab0;\n    border-radius: 6px;\n    padding: 4px 8px;\n}\n\n/* ── Status bar ── */\n#statusLabel {\n    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,\n        stop:0 #d0dae6, stop:1 #bfccd8);\n    border: 1px solid #8a9ab0;\n    border-radius: 6px;\n    padding: 4px 10px;\n    font-style: italic;\n}\n\n/* ── Generic buttons ── */\nQPushButton {\n    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,\n        stop:0 #dae2eb, stop:1 #c4cedb);\n    border: 1px solid #8a9ab0;\n    border-radius: 7px;\n    padding: 5px 12px;\n    color: #263447;\n}\nQPushButton:hover {\n    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,\n        stop:0 #e4eaf2, stop:1 #cfd8e4);\n}\nQPushButton:pressed {\n    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,\n        stop:0 #b8c4d2, stop:1 #cad4e0);\n    padding-left: 6px;\n    padding-top: 6px;\n}\n\n/* ── Accent buttons (Browse, Download, Shuffle) ── */\n#browseButton, #downloadButton, #shuffleButton {\n    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,\n        stop:0 #7d95b8, stop:1 #5c7898);\n    color: #f7f9fc;\n    border: 1px solid #4a6580;\n    border-radius: 7px;\n}\n#browseButton:hover, #downloadButton:hover, #shuffleButton:hover {\n    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,\n        stop:0 #90a8c8, stop:1 #6e8aaa);\n}\n#browseButton:pressed, #downloadButton:pressed, #shuffleButton:pressed {\n    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,\n        stop:0 #4e6880, stop:1 #617a98);\n}\n\n/* ── Play button ── */\n#playButton {\n    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,\n        stop:0 #72a668, stop:1 #4e8046);\n    color: #f4fff2;\n    border: 1px solid #3d6a36;\n    border-radius: 7px;\n    font-weight: bold;\n    min-width: 52px;\n}\n#playButton:hover {\n    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,\n        stop:0 #88bc7e, stop:1 #61945a);\n}\n#playButton:pressed {\n    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,\n        stop:0 #3d6a36, stop:1 #5a8852);\n}\n\n/* ── Album art panel ── */\n#albumArt {\n    background: qlineargradient(x1:0, y1:0, x2:1, y2:1,\n        stop:0 #cdd8e4, stop:1 #b8c8d8);\n    border: 1px solid #8a9ab0;\n    border-radius: 10px;\n}\n\n/* ── Scrollbar ── */\nQScrollBar:vertical {\n    background: #d0dae6;\n    width: 10px;\n    border-radius: 5px;\n    margin: 2px;\n}\nQScrollBar::handle:vertical {\n    background: qlineargradient(x1:0, y1:0, x2:1, y2:0,\n        stop:0 #7a91b0, stop:1 #5a7290);\n    border-radius: 5px;\n    min-height: 20px;\n}\nQScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {\n    height: 0px;\n}\nQScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {\n    background: transparent;\n}\n\n/* ── Volume slider ── */\nQSlider::groove:horizontal {\n    height: 6px;\n    background: qlineargradient(x1:0, y1:0, x2:1, y2:0,\n        stop:0 #b8c8d8, stop:1 #c8d4e0);\n    border: 1px solid #8a9ab0;\n    border-radius: 3px;\n}\nQSlider::handle:horizontal {\n    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,\n        stop:0 #8aa4c0, stop:1 #5a7898);\n    border: 1px solid #4a6580;\n    width: 14px;\n    height: 14px;\n    border-radius: 7px;\n    margin: -5px 0;\n}\nQSlider::sub-page:horizontal {\n    background: qlineargradient(x1:0, y1:0, x2:1, y2:0,\n        stop:0 #6a8fb0, stop:1 #8aaac8);\n    border-radius: 3px;\n}\n\n/* ── Menu bar ── */\nQMenuBar {\n    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,\n        stop:0 #d8e2ec, stop:1 #c8d4e0);\n    border-bottom: 1px solid #8a9ab0;\n    padding: 2px;\n}\nQMenuBar::item:selected {\n    background: #7a91b0;\n    color: #f8faff;\n    border-radius: 4px;\n}\nQMenu {\n    background-color: #e4eaf2;\n    border: 1px solid #8a9ab0;\n    border-radius: 6px;\n    padding: 4px;\n}\nQMenu::item {\n    padding: 5px 20px;\n    border-radius: 4px;\n}\nQMenu::item:selected {\n    background: #6a7f9f;\n    color: #f8faff;\n}\n"
 }

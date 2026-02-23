@@ -35,14 +35,14 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-pyinstaller \
+(cd "${project_root}" && pyinstaller \
   --distpath "${project_root}/dist" \
   --workpath "${project_root}/build" \
-  "${project_root}/app.spec"
+  "${project_root}/app.spec")
 
 if [[ ! -d "${build_dir}" ]]; then
   echo "Build not found after PyInstaller run: ${build_dir}"
-  exit 1
+  exit 1z
 fi
 
 if [[ "${system_install}" == "true" ]]; then
