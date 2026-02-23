@@ -36,7 +36,7 @@ exe = EXE(
     a.scripts,
     [],
     exclude_binaries=True,
-    name="mp3-player",
+    name="mp3qt",
     icon=os.path.join(project_root, "assets", "mp3-logo.png"),
     debug=False,
     bootloader_ignore_signals=False,
@@ -53,5 +53,5 @@ coll = COLLECT(
     strip=False,
     upx=True,
     upx_exclude=[],
-    name="mp3-player",
+    name="mp3qt",
 )

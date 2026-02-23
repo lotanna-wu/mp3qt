@@ -4,7 +4,7 @@ set -euo pipefail
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 project_root="$(cd -- "${script_dir}/.." && pwd)"
 
-app_name="mp3-player"
+app_name="mp3qt"
 build_dir="${project_root}/dist/${app_name}"
 system_install=false
 

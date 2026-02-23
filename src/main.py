@@ -9,7 +9,7 @@ from utils import load_config, save_config
 
 
 def main():
-    parser = argparse.ArgumentParser(description="MP3 Player (Qt)")
+    parser = argparse.ArgumentParser(description="mp3qt")
     parser.add_argument(
         "-d",
         "--default-directory",
@@ -48,22 +48,19 @@ def main():
 
     print("Checking dependencies...")
     try:
-        import pygame  # noqa: F401
-
+        import pygame
         print("Pygame available")
     except ImportError:
         print("Pygame not found (required for the app)")
         return 1
     try:
-        import yt_dlp  # noqa: F401
-
+        import yt_dlp
         print("yt-dlp available")
     except ImportError:
         print("yt-dlp not found (required for the app)")
         return 1
     try:
-        import PySide6  # noqa: F401
-
+        import PySide6
         print("PySide6 available")
     except ImportError:
         print("PySide6 not found (required for the Qt app)")

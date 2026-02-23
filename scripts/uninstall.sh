@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-app_name="mp3-player"
+app_name="mp3qt"
 system_install=false
 
 usage() {

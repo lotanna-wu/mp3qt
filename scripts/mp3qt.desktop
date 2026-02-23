@@ -1,8 +1,8 @@
 [Desktop Entry]
 Type=Application
-Name=MP3 Player
+Name=MP3 Qt
 Comment=Play local MP3 files
-Exec=${INSTALL_DIR}/mp3-player
+Exec=${INSTALL_DIR}/mp3qt
 Icon=mp3-player
 Terminal=false
 Categories=AudioVideo;Player;
