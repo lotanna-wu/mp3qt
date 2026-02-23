@@ -16,11 +16,9 @@ After building the Linux bundle, install the desktop entry and icon:
 ## CLI usage
 - Open with a folder: `mp3-player ~/Music`
 - Set default folder (no UI): `mp3-player -d ~/Music`
-- Set default theme from file: `mp3-player -t themes/example.json`
 
 ## Themes
 Create `~/.config/mp3-player/theme.json` with any of the keys below, or set it from a file with
-`mp3-player -t /path/to/theme.json`.
 - `window_bg`
 - `panel_bg`
 - `input_bg`
