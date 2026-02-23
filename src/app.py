@@ -278,7 +278,21 @@ class MusicPlayer(QMainWindow):
         self.centralWidget().layout().setSpacing(spacing)
         self.centralWidget().layout().setContentsMargins(padding, padding, padding, padding)
 
-        self.setFixedSize(max(640, m["window_width"]), max(480, m["window_height"]))
+        # fix for theming issue when newly loaded theme has a different size - LO
+        # unlock all size constraints first
+        self.setMinimumSize(0, 0)
+        self.setMaximumSize(16777215, 16777215)
+
+        new_w = max(640, m["window_width"])
+        new_h = max(480, m["window_height"])
+
+        # hide, resize, show, to force Qt to redraw the window
+        self.hide()
+        self.resize(new_w, new_h)
+        self.setFixedSize(new_w, new_h)
+
+        self.album_art_label.setMinimumSize(0, 0)
+        self.album_art_label.setMaximumSize(16777215, 16777215)
         self.album_art_label.setFixedSize(
             max(120, m["album_art_width"]),
             max(120, m["album_art_height"]),
@@ -295,11 +309,16 @@ class MusicPlayer(QMainWindow):
         self._apply_field_shadow(self.current_song_label, theme["effects"].get("field_shadow", "sunken"))
         self._apply_field_shadow(self.status_label, theme["effects"].get("status_shadow", "raised"))
 
+        # force full layout recalculation before showing
+        self.centralWidget().updateGeometry()
+        self.centralWidget().layout().activate()
+        QTimer.singleShot(0, self.show)
+
         if persist:
             config = load_config()
             config["qt_theme_path"] = theme_path
             save_config(config)
-
+            
     def _apply_field_shadow(self, widget, style):
         widget.setFrameShape(QFrame.Shape.Panel)
         widget.setLineWidth(1)
@@ -497,7 +516,9 @@ class MusicPlayer(QMainWindow):
             for key, value in audio.tags.items():
                 if key.startswith("APIC"):
                     img = Image.open(io.BytesIO(value.data))
-                    img = ImageOps.fit(img, (300, 300), Image.Resampling.LANCZOS)
+                    target = self.album_art_label.size()
+                    target_size = (max(1, target.width()), max(1, target.height()))
+                    img = ImageOps.fit(img, target_size, Image.Resampling.LANCZOS)
                     buffer = io.BytesIO()
                     img.save(buffer, format="PNG")
                     image_data = buffer.getvalue()
