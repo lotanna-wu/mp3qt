@@ -11,8 +11,13 @@ a = Analysis(
     binaries=[],
     datas=[
         (os.path.join(project_root, "assets", "mp3-logo.png"), "assets"),
+        (os.path.join(project_root, "themes"), "themes"),
     ],
     hiddenimports=[
+        "PySide6",
+        "PySide6.QtCore",
+        "PySide6.QtGui",
+        "PySide6.QtWidgets",
         "pygame",
         "yt_dlp",
         "mutagen",

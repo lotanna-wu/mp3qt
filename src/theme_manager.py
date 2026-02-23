@@ -1,5 +1,6 @@
 import json
 import os
+import sys
 
 
 class ThemeError(Exception):
@@ -72,9 +73,19 @@ def _merge_dict(base, override):
 class ThemeManager:
     def __init__(self, project_root):
         self.project_root = project_root
-        assets_theme_dir = os.path.join(project_root, "assets", "qt-themes")
+        runtime_root = getattr(sys, "_MEIPASS", project_root)
+        primary_theme_dir = os.path.join(project_root, "themes")
+        bundled_theme_dir = os.path.join(runtime_root, "themes")
+        legacy_assets_theme_dir = os.path.join(project_root, "assets", "qt-themes")
         legacy_theme_dir = os.path.join(project_root, "qt-themes")
-        self.theme_dir = assets_theme_dir if os.path.isdir(assets_theme_dir) else legacy_theme_dir
+        if os.path.isdir(primary_theme_dir):
+            self.theme_dir = primary_theme_dir
+        elif os.path.isdir(bundled_theme_dir):
+            self.theme_dir = bundled_theme_dir
+        elif os.path.isdir(legacy_assets_theme_dir):
+            self.theme_dir = legacy_assets_theme_dir
+        else:
+            self.theme_dir = legacy_theme_dir
         self.default_theme_path = os.path.join(self.theme_dir, "default.json")
 
     def load_theme(self, theme_path):

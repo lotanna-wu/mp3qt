@@ -1,3 +1,4 @@
+PySide6 # Qt UI
 pygame # playing audio
 yt-dlp # downloading audio
 mutagen # audio metadata
@@ -5,5 +6,4 @@ Pillow # image processing
 requests
 pyinstaller # to bundle the app
 # Additional notes:
-# - may need to install tkinter separately
 # - ffmpeg executable should be installed on the system and available in PATH

@@ -2,23 +2,19 @@ import argparse
 import os
 import sys
 
+from PySide6.QtWidgets import QApplication
+
 from app import MusicPlayer
-from utils import load_config, save_config, load_theme, get_theme_path
+from utils import load_config, save_config
 
 
 def main():
-    parser = argparse.ArgumentParser(description="MP3 Player")
+    parser = argparse.ArgumentParser(description="MP3 Player (Qt)")
     parser.add_argument(
         "-d",
         "--default-directory",
         dest="default_directory",
         help="Set the default music directory and exit",
-    )
-    parser.add_argument(
-        "-t",
-        "--theme",
-        dest="theme",
-        help="Set the default theme from a file path (copied to ~/.config/mp3-player/theme.json)",
     )
     parser.add_argument(
         "path",
@@ -39,27 +35,9 @@ def main():
         return 0
 
     config = load_config()
-    if args.theme:
-        theme_src = os.path.abspath(os.path.expanduser(args.theme))
-        if not os.path.isfile(theme_src):
-            print(f"Theme file not found: {theme_src}")
-            return 1
-        theme_dst = get_theme_path()
-        os.makedirs(os.path.dirname(theme_dst), exist_ok=True)
-        try:
-            with open(theme_src, "r", encoding="utf-8") as handle:
-                theme_text = handle.read()
-            with open(theme_dst, "w", encoding="utf-8") as handle:
-                handle.write(theme_text)
-        except Exception as exc:
-            print(f"Failed to set theme: {exc}")
-            return 1
-        print(f"Theme set from: {theme_src}")
-
-    theme_data = load_theme()
-
     default_dir = config.get("default_directory")
     launch_dir = None
+
     if args.path:
         launch_dir = os.path.abspath(os.path.expanduser(args.path))
         if not os.path.isdir(launch_dir):
@@ -70,31 +48,31 @@ def main():
 
     print("Checking dependencies...")
     try:
-        import pygame
+        import pygame  # noqa: F401
+
         print("Pygame available")
     except ImportError:
         print("Pygame not found (required for the app)")
         return 1
     try:
-        import yt_dlp
+        import yt_dlp  # noqa: F401
+
         print("yt-dlp available")
     except ImportError:
         print("yt-dlp not found (required for the app)")
         return 1
-
     try:
-        from app import MUTAGEN_AVAILABLE, PILLOW_AVAILABLE
-        if MUTAGEN_AVAILABLE:
-            print("Mutagen available (for metadata)")
-        if PILLOW_AVAILABLE:
-            print("Pillow available (for images)")
-    except Exception:
-        pass
+        import PySide6  # noqa: F401
 
-    print("\nStarting player...")
-    app = MusicPlayer(initial_folder=launch_dir, theme=theme_data)
-    app.run()
-    return 0
+        print("PySide6 available")
+    except ImportError:
+        print("PySide6 not found (required for the Qt app)")
+        return 1
+
+    qapp = QApplication(sys.argv)
+    player = MusicPlayer(initial_folder=launch_dir)
+    player.show()
+    return qapp.exec()
 
 
 if __name__ == "__main__":
