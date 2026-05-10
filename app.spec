@@ -16,6 +16,7 @@ a = Analysis(
     hiddenimports=[
         "PySide6",
         "PySide6.QtCore",
+        "PySide6.QtDBus",
         "PySide6.QtGui",
         "PySide6.QtWidgets",
         "pygame",
