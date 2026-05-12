@@ -5,11 +5,8 @@ import os
 import random
 import threading
 
-os.environ.setdefault("PYGAME_HIDE_SUPPORT_PROMPT", "1")
-
-import pygame
 import yt_dlp
-from PySide6.QtCore import Qt, QTimer, Signal, QUrl
+from PySide6.QtCore import QSignalBlocker, Qt, QTimer, Signal, QUrl
 from PySide6.QtGui import QAction, QFont, QIcon, QImage, QPixmap
 from PySide6.QtWidgets import (
     QFileDialog,
@@ -30,6 +27,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtDBus import QDBusConnection
 from PySide6.QtDBus import QDBusMessage, QDBusObjectPath, QDBusVariant
 from mpris import MprisRootAdaptor, MprisPlayerAdaptor
+from media import Mixer
 
 try:
     from mutagen.id3 import ID3
@@ -67,21 +65,14 @@ class MusicPlayer(QMainWindow):
         if os.path.isfile(icon_path):
             self.setWindowIcon(QIcon(icon_path))
 
-        pygame.mixer.init()
+        self.mixer = Mixer(self)
 
         self.current_folder = None
         self.playlist = []
         self.ui_playlist = []
         self.current_index = 0
-
-        self.current_song_name = None
-        self.current_artist_name = None
-        self.current_album_name = None
-        self.current_track_path = None
-        self.current_track_length_us = 0
-
-        self.is_playing = False
-        self.is_paused = False
+        self._is_user_seeking = False
+        
         self.is_downloading = False
         self.current_theme_path = None
         self.theme = None
@@ -91,7 +82,6 @@ class MusicPlayer(QMainWindow):
 
         self._setup_ui()
         self._bind_signals()
-        self._start_playback_monitor()
         self._load_initial_theme()
         self._mpris_obj = self.register_mpris()
 
@@ -159,10 +149,29 @@ class MusicPlayer(QMainWindow):
         main_layout.addLayout(now_row)
 
         content_row = QHBoxLayout()
+        playlist_column = QVBoxLayout()
+        playlist_column.setSpacing(6)
         self.playlist_box = QListWidget()
+        self.playlist_box.setMinimumHeight(220)
         self.playlist_box.currentRowChanged.connect(self.on_song_select)
         self.playlist_box.itemClicked.connect(self.on_song_clicked)
-        content_row.addWidget(self.playlist_box, 1)
+        playlist_column.addWidget(self.playlist_box, 1)
+
+        seek_row = QHBoxLayout()
+        self.seek_elapsed_label = QLabel("0:00")
+        self.seek_elapsed_label.setMinimumWidth(40)
+        seek_row.addWidget(self.seek_elapsed_label)
+        self.seek_slider = QSlider(Qt.Orientation.Horizontal)
+        self.seek_slider.setRange(0, 1000)
+        self.seek_slider.setValue(0)
+        seek_row.addWidget(self.seek_slider, 1)
+        self.seek_duration_label = QLabel("0:00")
+        self.seek_duration_label.setMinimumWidth(40)
+        self.seek_duration_label.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+        seek_row.addWidget(self.seek_duration_label)
+        self.seek_slider.sliderMoved.connect(self.mixer.set_position)
+        playlist_column.addLayout(seek_row)
+        content_row.addLayout(playlist_column, 1)
 
         self.album_art_label = QLabel("No Art")
         self.album_art_label.setObjectName("albumArt")
@@ -231,12 +240,11 @@ class MusicPlayer(QMainWindow):
         self.download_button_state.connect(self._set_download_button_state)
         self.download_clear_url.connect(self.url_input.clear)
         self.reload_playlist_signal.connect(self.load_playlist)
-
-    def _start_playback_monitor(self):
-        self.playback_timer = QTimer(self)
-        self.playback_timer.setInterval(500)
-        self.playback_timer.timeout.connect(self._monitor_playback_tick)
-        self.playback_timer.start()
+        self.seek_slider.sliderPressed.connect(self._on_seek_pressed)
+        self.seek_slider.sliderMoved.connect(self._on_seek_moved)
+        self.seek_slider.sliderReleased.connect(self._on_seek_released)
+        self.mixer.position_changed.connect(self._on_player_position_changed)
+        self.mixer.duration_changed.connect(self._on_player_duration_changed)
 
     def _load_initial_theme(self):
         config = load_config()
@@ -324,8 +332,8 @@ class MusicPlayer(QMainWindow):
         self._apply_field_shadow(self.status_label, theme["effects"].get("status_shadow", "raised"))
 
         # forgot i need to rerender the album art 
-        if self.current_track_path and os.path.isfile(self.current_track_path):
-            self.update_album_art(self.current_track_path)
+        if self.mixer.current_track_path and os.path.isfile(self.mixer.current_track_path):
+            self.update_album_art(self.mixer.current_track_path)
 
         # force full layout recalculation before showing
         self.centralWidget().updateGeometry()
@@ -386,15 +394,38 @@ class MusicPlayer(QMainWindow):
             self.ui_playlist = [song for song in self.playlist if query in song.lower()]
         self._refresh_playlist_widget()
 
-    def _refresh_playlist_widget(self):
-        self.playlist_box.clear()
-        for song in self.ui_playlist:
-            self.playlist_box.addItem(QListWidgetItem(song))
-        if self.ui_playlist:
-            self.current_index = min(self.current_index, len(self.ui_playlist) - 1)
-            self.playlist_box.setCurrentRow(self.current_index)
-        else:
+    def _get_current_song_filename(self):
+        track_path = self.mixer.current_track_path
+        if not track_path:
+            return None
+        return os.path.basename(track_path)
+
+    def _sync_playlist_selection(self):
+        current_song = self._get_current_song_filename()
+        if not self.ui_playlist:
             self.current_index = 0
+            with QSignalBlocker(self.playlist_box):
+                self.playlist_box.clearSelection()
+                self.playlist_box.setCurrentRow(-1)
+            return
+
+        if current_song and current_song in self.ui_playlist:
+            self.current_index = self.ui_playlist.index(current_song)
+            with QSignalBlocker(self.playlist_box):
+                self.playlist_box.setCurrentRow(self.current_index)
+            return
+
+        self.current_index = min(self.current_index, len(self.ui_playlist) - 1)
+        with QSignalBlocker(self.playlist_box):
+            self.playlist_box.clearSelection()
+            self.playlist_box.setCurrentRow(-1)
+
+    def _refresh_playlist_widget(self):
+        with QSignalBlocker(self.playlist_box):
+            self.playlist_box.clear()
+            for song in self.ui_playlist:
+                self.playlist_box.addItem(QListWidgetItem(song))
+        self._sync_playlist_selection()
 
     def download_song(self):
         url = self.url_input.text().strip()
@@ -459,6 +490,44 @@ class MusicPlayer(QMainWindow):
         self.download_btn.setEnabled(enabled)
         self.download_btn.setText(text)
 
+    def _format_time_ms(self, milliseconds):
+        total_seconds = max(0, int(milliseconds) // 1000)
+        minutes, seconds = divmod(total_seconds, 60)
+        hours, minutes = divmod(minutes, 60)
+        if hours:
+            return f"{hours}:{minutes:02d}:{seconds:02d}"
+        return f"{minutes}:{seconds:02d}"
+
+    def _reset_seek_ui(self):
+        self._is_user_seeking = False
+        with QSignalBlocker(self.seek_slider):
+            self.seek_slider.setRange(0, 0)
+            self.seek_slider.setValue(0)
+        self.seek_elapsed_label.setText("0:00")
+        self.seek_duration_label.setText("0:00")
+
+    def _on_seek_pressed(self):
+        self._is_user_seeking = True
+
+    def _on_seek_moved(self, position):
+        self.seek_elapsed_label.setText(self._format_time_ms(position))
+
+    def _on_seek_released(self):
+        self.mixer.set_position(self.seek_slider.value())
+        self._is_user_seeking = False
+
+    def _on_player_position_changed(self, position):
+        if self._is_user_seeking:
+            return
+        with QSignalBlocker(self.seek_slider):
+            self.seek_slider.setValue(position)
+        self.seek_elapsed_label.setText(self._format_time_ms(position))
+
+    def _on_player_duration_changed(self, duration):
+        with QSignalBlocker(self.seek_slider):
+            self.seek_slider.setRange(0, max(0, duration))
+        self.seek_duration_label.setText(self._format_time_ms(duration))
+
     def load_playlist(self):
         self.search_input.clear()
         if not self.current_folder:
@@ -469,8 +538,12 @@ class MusicPlayer(QMainWindow):
         self.current_index = 0
         self._refresh_playlist_widget()
         if self.ui_playlist:
-            self.current_song_label.setText(f"Ready to play: {self.ui_playlist[0]}")
-            self._set_track_metadata(os.path.join(self.current_folder, self.ui_playlist[0]), update_song_name=False)
+            current_song = self._get_current_song_filename()
+            if current_song and current_song in self.ui_playlist:
+                self.current_song_label.setText(self.mixer.current_song_name)
+            else:
+                self.current_song_label.setText(f"Ready to play: {self.ui_playlist[0]}")
+            self._reset_seek_ui()
             self.clear_album_art()
             self._emit_mpris_properties_changed({
                 "PlaybackStatus": self.get_playback_status(),
@@ -481,8 +554,9 @@ class MusicPlayer(QMainWindow):
                 "CanPause": self.can_pause(),
             })
         else:
-            self._clear_track_metadata()
+            self.mixer.clear_track_metadata()
             self.current_song_label.setText("None")
+            self._reset_seek_ui()
             self.clear_album_art()
             self.update_status("No MP3 files found in selected folder", "info")
             self._emit_mpris_properties_changed({
@@ -495,9 +569,7 @@ class MusicPlayer(QMainWindow):
             })
     
     def _play(self):
-        pygame.mixer.music.unpause()
-        self.is_playing = True
-        self.is_paused = False
+        self.mixer.play()
         self.play_btn.setText("Pause")
         self._emit_mpris_properties_changed({
             "PlaybackStatus": self.get_playback_status(),
@@ -508,9 +580,7 @@ class MusicPlayer(QMainWindow):
         })
             
     def _pause(self):
-        pygame.mixer.music.pause()
-        self.is_playing = True
-        self.is_paused = True
+        self.mixer.pause()
         self.play_btn.setText("Play")
         self._emit_mpris_properties_changed({
             "PlaybackStatus": self.get_playback_status(),
@@ -524,39 +594,36 @@ class MusicPlayer(QMainWindow):
         if not self.ui_playlist:
             QMessageBox.warning(self, "No Music", "No songs in queue")
             return
-        
-        if not self.is_playing:
-            self.play_current_song()
-            return
 
-        if self.is_paused:
+        if self.mixer.is_paused():
             self._play()
-        else:
+        elif self.mixer.is_playing():
             self._pause()
+        else:
+            self.play_current_song()
 
     def play(self):
         if not self.ui_playlist:
             return
-        if not self.is_playing:
-            self.play_current_song()
-            return
-        if self.is_paused:
+        if self.mixer.is_paused():
             self._play()
+        elif not self.mixer.is_playing():
+            self.play_current_song()
 
     def pause(self):
-        if self.is_playing and not self.is_paused:
+        if self.mixer.is_playing() and not self.mixer.is_paused():
             self._pause()
 
     def next_from_mpris(self):
         if not self.can_go_next():
             return
-        was_paused = self.is_paused
-        was_stopped = not self.is_playing
+        was_paused = self.mixer.is_paused()
+        was_stopped = self.mixer.is_stopped()
         self.current_index = (self.current_index + 1) % len(self.ui_playlist)
         self.playlist_box.setCurrentRow(self.current_index)
         if was_stopped:
             song_path = os.path.join(self.current_folder, self.ui_playlist[self.current_index])
-            self._set_track_metadata(song_path, update_song_name=False)
+            self.mixer.set_track_metadata(song_path, update_song_name=False)
             self.current_song_label.setText(f"Ready: {self.ui_playlist[self.current_index]}")
             self._emit_mpris_properties_changed({
                 "PlaybackStatus": self.get_playback_status(),
@@ -575,13 +642,13 @@ class MusicPlayer(QMainWindow):
     def previous_from_mpris(self):
         if not self.can_go_previous():
             return
-        was_paused = self.is_paused
-        was_stopped = not self.is_playing
+        was_paused = self.mixer.is_paused()
+        was_stopped = self.mixer.is_stopped()
         self.current_index = (self.current_index - 1 + len(self.ui_playlist)) % len(self.ui_playlist)
         self.playlist_box.setCurrentRow(self.current_index)
         if was_stopped:
             song_path = os.path.join(self.current_folder, self.ui_playlist[self.current_index])
-            self._set_track_metadata(song_path, update_song_name=False)
+            self.mixer.set_track_metadata(song_path, update_song_name=False)
             self.current_song_label.setText(f"Ready: {self.ui_playlist[self.current_index]}")
             self._emit_mpris_properties_changed({
                 "PlaybackStatus": self.get_playback_status(),
@@ -599,10 +666,10 @@ class MusicPlayer(QMainWindow):
 
     def play_current_song(self):
         if not self.ui_playlist or self.current_index >= len(self.ui_playlist):
-            self.is_playing = False
-            self.is_paused = False
-            pygame.mixer.music.stop()
-            self._clear_track_metadata()
+            self.mixer.stop()
+            self.mixer.clear_track_metadata()
+            self._sync_playlist_selection()
+            self._reset_seek_ui()
             self.clear_album_art()
             self._emit_mpris_properties_changed({
                 "PlaybackStatus": self.get_playback_status(),
@@ -616,14 +683,10 @@ class MusicPlayer(QMainWindow):
 
         song_path = os.path.join(self.current_folder, self.ui_playlist[self.current_index])
         try:
-            self._set_track_metadata(song_path)
-            pygame.mixer.music.load(song_path)
-            pygame.mixer.music.play()
-            self.is_playing = True
-            self.is_paused = False
+            self.mixer.set_source(song_path)
             self.play_btn.setText("Pause")
-            self.current_song_label.setText(self.current_song_name)
-            self.playlist_box.setCurrentRow(self.current_index)
+            self.current_song_label.setText(self.mixer.current_song_name)
+            self._sync_playlist_selection()
             self.update_album_art(song_path)
             self._emit_mpris_properties_changed({
                 "PlaybackStatus": self.get_playback_status(),
@@ -635,9 +698,9 @@ class MusicPlayer(QMainWindow):
             })
         except Exception as exc:
             QMessageBox.critical(self, "Playback Error", f"Couldn't play {song_path}\nError: {exc}")
-            self.is_playing = False
-            self.is_paused = False
-            self._clear_track_metadata()
+            self.mixer.stop()
+            self.mixer.clear_track_metadata()
+            self._reset_seek_ui()
             self.clear_album_art()
             self._emit_mpris_properties_changed({
                 "PlaybackStatus": self.get_playback_status(),
@@ -652,46 +715,6 @@ class MusicPlayer(QMainWindow):
         self.album_art_label.setPixmap(QPixmap())
         self.album_art_label.setText("No Art")
     
-    def _set_track_metadata(self, song_path, update_song_name=True):
-        fallback_title = os.path.splitext(os.path.basename(song_path))[0]
-        self.current_track_path = song_path
-        self.current_track_length_us = 0
-        self.current_artist_name = "Unknown Artist"
-        self.current_album_name = "Unknown Album"
-        self.current_song_name = fallback_title
-
-        if not MUTAGEN_AVAILABLE:
-            return
-
-        try:
-            audio = MP3(song_path, ID3=ID3)
-        except Exception:
-            return
-
-        title_tag = audio.tags.get("TIT2") if audio.tags else None
-        artist_tag = audio.tags.get("TPE1") if audio.tags else None
-        album_tag = audio.tags.get("TALB") if audio.tags else None
-
-        if title_tag:
-            self.current_song_name = str(title_tag)
-        elif update_song_name:
-            self.current_song_name = os.path.basename(song_path)
-
-        if artist_tag:
-            self.current_artist_name = str(artist_tag)
-        if album_tag:
-            self.current_album_name = str(album_tag)
-
-        if getattr(audio, "info", None) and getattr(audio.info, "length", None):
-            self.current_track_length_us = int(audio.info.length * 1_000_000)
-
-    def _clear_track_metadata(self):
-        self.current_song_name = None
-        self.current_artist_name = None
-        self.current_album_name = None
-        self.current_track_path = None
-        self.current_track_length_us = 0
-
     # album art rendering is separate from metadata extraction
     def update_album_art(self, song_path):
         if not MUTAGEN_AVAILABLE or not PILLOW_AVAILABLE:
@@ -724,15 +747,15 @@ class MusicPlayer(QMainWindow):
         except Exception:
             self.clear_album_art()
 
-    def next_song(self):
+    def next_song(self, force_play=False):
         if not self.ui_playlist:
             return
         self.current_index = (self.current_index + 1) % len(self.ui_playlist)
-        if self.is_playing or self.is_paused:
+        if force_play or self.mixer.is_playing() or self.mixer.is_paused():
             self.play_current_song()
         else:
-            self.playlist_box.setCurrentRow(self.current_index)
-            self._set_track_metadata(os.path.join(self.current_folder, self.ui_playlist[self.current_index]), update_song_name=False)
+            self.mixer.set_track_metadata(os.path.join(self.current_folder, self.ui_playlist[self.current_index]), update_song_name=False)
+            self._sync_playlist_selection()
             self.current_song_label.setText(f"Ready: {self.ui_playlist[self.current_index]}")
             self._emit_mpris_properties_changed({
                 "PlaybackStatus": self.get_playback_status(),
@@ -747,11 +770,11 @@ class MusicPlayer(QMainWindow):
         if not self.ui_playlist:
             return
         self.current_index = (self.current_index - 1 + len(self.ui_playlist)) % len(self.ui_playlist)
-        if self.is_playing or self.is_paused:
+        if self.mixer.is_playing() or self.mixer.is_paused():
             self.play_current_song()
         else:
-            self.playlist_box.setCurrentRow(self.current_index)
-            self._set_track_metadata(os.path.join(self.current_folder, self.ui_playlist[self.current_index]), update_song_name=False)
+            self.mixer.set_track_metadata(os.path.join(self.current_folder, self.ui_playlist[self.current_index]), update_song_name=False)
+            self._sync_playlist_selection()
             self.current_song_label.setText(f"Ready: {self.ui_playlist[self.current_index]}")
             self._emit_mpris_properties_changed({
                 "PlaybackStatus": self.get_playback_status(),
@@ -766,12 +789,8 @@ class MusicPlayer(QMainWindow):
         if not self.ui_playlist:
             QMessageBox.warning(self, "No Playlist", "Load songs first")
             return
-        current_song = self.ui_playlist[self.current_index] if self.current_index < len(self.ui_playlist) else None
         random.shuffle(self.ui_playlist)
         self._refresh_playlist_widget()
-        if current_song and current_song in self.ui_playlist:
-            self.current_index = self.ui_playlist.index(current_song)
-            self.playlist_box.setCurrentRow(self.current_index)
         self.update_status("Playlist shuffled", "success")
 
     def on_song_select(self, row):
@@ -779,7 +798,7 @@ class MusicPlayer(QMainWindow):
             return
         self.current_index = row
         if self.current_folder:
-            self._set_track_metadata(os.path.join(self.current_folder, self.ui_playlist[row]), update_song_name=False)
+            self.mixer.set_track_metadata(os.path.join(self.current_folder, self.ui_playlist[row]), update_song_name=False)
             self._emit_mpris_properties_changed({
                 "Metadata": self.get_mpris_metadata(),
                 "CanGoNext": self.can_go_next(),
@@ -787,7 +806,7 @@ class MusicPlayer(QMainWindow):
                 "CanPlay": self.can_play(),
                 "CanPause": self.can_pause(),
             })
-        if not self.is_playing and not self.is_paused:
+        if not self.mixer.is_playing() and not self.mixer.is_paused():
             self.current_song_label.setText(f"Ready: {self.ui_playlist[row]}")
 
     def on_song_clicked(self, item):
@@ -798,16 +817,12 @@ class MusicPlayer(QMainWindow):
         self.play_current_song()
 
     def set_volume(self, value):
-        pygame.mixer.music.set_volume(int(value) / 100.0)
-
-    def _monitor_playback_tick(self):
-        if self.is_playing and not self.is_paused and not pygame.mixer.music.get_busy():
-            self.next_song()
+        self.mixer.set_volume(int(value) / 100.0)
 
     def get_playback_status(self):
-        if self.is_paused:
+        if self.mixer.is_paused():
             return "Paused"
-        if self.is_playing:
+        if self.mixer.is_playing():
             return "Playing"
         return "Stopped"
 
@@ -825,20 +840,20 @@ class MusicPlayer(QMainWindow):
         return len(self.ui_playlist) > 1
 
     def get_mpris_metadata(self):
-        if not self.current_track_path:
+        if not self.mixer.current_track_path:
             return {
                 "mpris:trackid": QDBusObjectPath("/org/mpris/MediaPlayer2/TrackList/NoTrack"),
             }
 
         metadata = {
             "mpris:trackid": QDBusObjectPath(self._get_mpris_track_id()),
-            "xesam:title": self.current_song_name or "",
-            "xesam:artist": [self.current_artist_name or ""],
-            "xesam:album": self.current_album_name or "",
-            "xesam:url": QUrl.fromLocalFile(self.current_track_path).toString(),
+            "xesam:title": self.mixer.current_song_name or "",
+            "xesam:artist": [self.mixer.current_artist_name or ""],
+            "xesam:album": self.mixer.current_album_name or "",
+            "xesam:url": QUrl.fromLocalFile(self.mixer.current_track_path).toString(),
         }
-        if self.current_track_length_us > 0:
-            metadata["mpris:length"] = self.current_track_length_us
+        if self.mixer.current_track_length_us > 0:
+            metadata["mpris:length"] = self.mixer.current_track_length_us
         return metadata
 
     def _emit_mpris_properties_changed(self, changed_properties):
@@ -862,9 +877,9 @@ class MusicPlayer(QMainWindow):
         QDBusConnection.sessionBus().send(message)
 
     def _get_mpris_track_id(self):
-        if not self.current_track_path:
+        if not self.mixer.current_track_path:
             return "/org/mpris/MediaPlayer2/TrackList/NoTrack"
-        digest = hashlib.sha1(self.current_track_path.encode("utf-8")).hexdigest()
+        digest = hashlib.sha1(self.mixer.current_track_path.encode("utf-8")).hexdigest()
         return f"/com/github/lowu/mp3qt/track/{digest}"
         
     def register_mpris(self):
@@ -879,7 +894,5 @@ class MusicPlayer(QMainWindow):
         print("MPRIS registered")
         return self
 
-
     def closeEvent(self, event):
-        pygame.mixer.quit()
         super().closeEvent(event)

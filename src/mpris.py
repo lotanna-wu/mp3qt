@@ -78,9 +78,9 @@ class MprisPlayerAdaptor(QDBusAbstractAdaptor):
 
     @Property(str)
     def PlaybackStatus(self):
-        if self._window.is_paused:
+        if self._window.mixer.is_paused():
             return "Paused"
-        elif self._window.is_playing:
+        elif self._window.mixer.is_playing():
             return "Playing"
         return "Stopped"
 
