@@ -19,7 +19,7 @@ a = Analysis(
         "PySide6.QtDBus",
         "PySide6.QtGui",
         "PySide6.QtWidgets",
-        "pygame",
+        "PySide6.QtMultimedia",
         "yt_dlp",
         "mutagen",
         "PIL",

@@ -1,5 +1,4 @@
 PySide6 # Qt UI
-pygame # playing audio
 yt-dlp # downloading audio
 mutagen # audio metadata
 Pillow # image processing
