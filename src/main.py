@@ -48,12 +48,6 @@ def main():
 
     print("Checking dependencies...")
     try:
-        import pygame
-        print("Pygame available")
-    except ImportError:
-        print("Pygame not found (required for the app)")
-        return 1
-    try:
         import yt_dlp
         print("yt-dlp available")
     except ImportError:
