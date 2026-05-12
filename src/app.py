@@ -256,12 +256,13 @@ class MusicPlayer(QMainWindow):
 
     def choose_theme_file(self):
         start_dir = self.theme_manager.theme_dir
-        selected, _ = QFileDialog.getOpenFileName(
-            self,
-            "Load Theme File",
-            start_dir,
-            "Theme JSON (*.json)",
-        )
+        dialog = QFileDialog(None, "Load Theme File", start_dir, "Theme JSON (*.json)")
+        dialog.setStyleSheet("")
+        dialog.setFileMode(QFileDialog.FileMode.ExistingFile)
+        if dialog.exec() != QFileDialog.DialogCode.Accepted:
+            return
+        selected_files = dialog.selectedFiles()
+        selected = selected_files[0] if selected_files else ""
         if not selected:
             return
         self.apply_theme_from_path(selected, persist=True)
@@ -357,7 +358,14 @@ class MusicPlayer(QMainWindow):
 
     def browse_folder(self):
         start_dir = self.current_folder if self.current_folder else os.path.expanduser("~")
-        folder = QFileDialog.getExistingDirectory(self, "Select Music Folder", start_dir)
+        dialog = QFileDialog(None, "Select Music Folder", start_dir)
+        dialog.setStyleSheet("")
+        dialog.setFileMode(QFileDialog.FileMode.Directory)
+        dialog.setOption(QFileDialog.Option.ShowDirsOnly, True)
+        if dialog.exec() != QFileDialog.DialogCode.Accepted:
+            return
+        selected_files = dialog.selectedFiles()
+        folder = selected_files[0] if selected_files else ""
         if folder:
             self.set_folder(folder)
 
