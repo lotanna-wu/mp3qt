@@ -3,7 +3,7 @@ import os
 import shutil
 import sys
 
-APP_NAME = "mp3-player"
+APP_NAME = "mp3qt"
 
 
 def get_ffmpeg_path():
