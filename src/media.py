@@ -90,7 +90,7 @@ class Mixer(QObject):
         self.set_track_metadata(song_path, update_song)
     
     def on_audio_output_changed(self):
-        #todo: find a way to autoplay if the player was active before the media change
+        #todo: find a way to autoplay if the player was active before the media change, weird bc MPRIS triggers a pause when the media device changes
         vol = self.audio_output.volume()
         self.audio_output = QAudioOutput()
         self.audio_output.setVolume(vol)
