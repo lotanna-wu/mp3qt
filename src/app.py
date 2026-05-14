@@ -474,6 +474,9 @@ class MusicPlayer(QMainWindow):
                 video_title = info.get("title", "Unknown")
                 self.status_update.emit(f"Downloading: {video_title[:50]}...", "info")
                 ydl.download([url])
+                downloaded_path = ydl.prepare_filename(info)
+
+            self._crop_embedded_thumbnail(downloaded_path)
 
             self.status_update.emit(f"Downloaded: {video_title[:40]}...", "success")
             self.download_clear_url.emit()
@@ -487,7 +490,7 @@ class MusicPlayer(QMainWindow):
             elif "ffmpeg" in error_msg.lower():
                 error_msg = "Download failed: FFmpeg not found in PATH"
             else:
-                error_msg = f"Download failed: {error_msg[:60]}..."
+                error_msg = f"Download failed: {error_msg[:70]}..."
             self.status_update.emit(error_msg, "error")
         finally:
             self.is_downloading = False
@@ -721,6 +724,43 @@ class MusicPlayer(QMainWindow):
     def clear_album_art(self):
         self.album_art_label.setPixmap(QPixmap())
         self.album_art_label.setText("No Art")
+
+    def _crop_embedded_thumbnail(self, downloaded_path):
+        if not MUTAGEN_AVAILABLE or not PILLOW_AVAILABLE:
+            return
+
+        base_path, _ = os.path.splitext(downloaded_path)
+        mp3_path = f"{base_path}.mp3"
+        if not os.path.isfile(mp3_path):
+            return
+
+        try:
+            audio = MP3(mp3_path, ID3=ID3)
+            if not audio.tags:
+                return
+
+            updated = False
+            for key, value in audio.tags.items():
+                if not key.startswith("APIC"):
+                    continue
+
+                img = Image.open(io.BytesIO(value.data))
+                if img.width == img.height:
+                    continue
+
+                side = min(img.width, img.height)
+                cropped = ImageOps.fit(img, (side, side), Image.Resampling.LANCZOS)
+                buffer = io.BytesIO()
+                cropped.save(buffer, format="PNG")
+
+                value.mime = "image/png"
+                value.data = buffer.getvalue()
+                updated = True
+
+            if updated:
+                audio.save()
+        except Exception:
+            return
     
     # album art rendering is separate from metadata extraction
     def update_album_art(self, song_path):
