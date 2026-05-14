@@ -233,7 +233,6 @@ class MusicPlayer(QMainWindow):
         main_layout.addLayout(controls_row)
 
         self.update_status("Ready", "default")
-        self.set_volume(70)
 
     def _bind_signals(self):
         self.status_update.connect(self.update_status)

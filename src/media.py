@@ -1,5 +1,5 @@
 from PySide6.QtCore import QObject, QUrl, Signal
-from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
+from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer, QMediaDevices
 import os
 
 try:
@@ -74,8 +74,11 @@ class Mixer(QObject):
         self.player = QMediaPlayer()
         self.audio_output = QAudioOutput()
         self.player.setAudioOutput(self.audio_output)
-        self.audio_output.setVolume(0.9)
+        self.audio_output.setVolume(0.7)
 
+        self.media_devices = QMediaDevices()
+        self.media_devices.audioOutputsChanged.connect(self.on_audio_output_changed)
+        
         self.player.mediaStatusChanged.connect(self.on_status)
         self.player.positionChanged.connect(self.position_changed.emit)
         self.player.durationChanged.connect(self.duration_changed.emit)
@@ -85,6 +88,13 @@ class Mixer(QObject):
     def set_source(self, song_path, update_song=True):
         self.player.setSource(QUrl.fromLocalFile(song_path))
         self.set_track_metadata(song_path, update_song)
+    
+    def on_audio_output_changed(self):
+        #todo: find a way to autoplay if the player was active before the media change
+        vol = self.audio_output.volume()
+        self.audio_output = QAudioOutput()
+        self.audio_output.setVolume(vol)
+        self.player.setAudioOutput(self.audio_output)
 
     def on_status(self, status):
         self.media_status_changed.emit(status)
@@ -143,3 +153,6 @@ class Mixer(QObject):
     
     def set_position(self, pos):
         self.player.setPosition(pos)
+    
+    def get_volume(self):
+        return self.audio_output.volume()
