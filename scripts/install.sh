@@ -42,7 +42,7 @@ done
 
 if [[ ! -d "${build_dir}" ]]; then
   echo "Build not found after PyInstaller run: ${build_dir}"
-  exit 1z
+  exit 1
 fi
 
 if [[ "${system_install}" == "true" ]]; then
