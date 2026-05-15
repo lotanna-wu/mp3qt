@@ -1,9 +1,9 @@
 # mp3qt
-this is a remake of an mp3 player i made using winforms
+This is a remake of an mp3 player I made using WinForms
 
 ## Linux installation
 ```bash
-git clone [proj-url] && cd mp3qt
+git clone git@github.com:lotanna-wu/mp3qt.git && cd mp3qt
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
