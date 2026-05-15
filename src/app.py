@@ -152,7 +152,7 @@ class MusicPlayer(QMainWindow):
         playlist_column = QVBoxLayout()
         playlist_column.setSpacing(6)
         self.playlist_box = QListWidget()
-        self.playlist_box.setMinimumHeight(220)
+        self.playlist_box.setMinimumHeight(160)
         self.playlist_box.currentRowChanged.connect(self.on_song_select)
         self.playlist_box.itemClicked.connect(self.on_song_clicked)
         playlist_column.addWidget(self.playlist_box, 1)
