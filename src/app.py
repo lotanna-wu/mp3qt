@@ -25,8 +25,6 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from PySide6.QtDBus import QDBusConnection
-from PySide6.QtDBus import QDBusMessage, QDBusObjectPath, QDBusVariant
 from media import Mixer
 
 try:
@@ -46,12 +44,20 @@ except ImportError:
 
 CURRENT_DIR = os.path.abspath(os.path.dirname(__file__))
 PROJECT_ROOT = os.path.abspath(os.path.join(CURRENT_DIR, ".."))
+IS_LINUX = sys.platform.startswith("linux")
 
 from utils import get_ffmpeg_path, get_resource_path, load_config, save_config
 from theme_manager import ThemeError, ThemeManager
 
-if sys.platform == "linux":
+if IS_LINUX:
+    from PySide6.QtDBus import QDBusConnection
+    from PySide6.QtDBus import QDBusMessage, QDBusObjectPath, QDBusVariant
     from mpris import MprisPlayerAdaptor, MprisRootAdaptor
+else:
+    QDBusConnection = None
+    QDBusMessage = None
+    QDBusObjectPath = None
+    QDBusVariant = None
 
 class MusicPlayer(QMainWindow):
     status_update = Signal(str, str)
@@ -79,13 +85,16 @@ class MusicPlayer(QMainWindow):
         self.current_theme_path = None
         self.theme = None
         self.theme_manager = ThemeManager(PROJECT_ROOT)
+        self._mpris_obj = None
         self._mpris_root_adaptor = None
         self._mpris_player_adaptor = None
 
         self._setup_ui()
         self._bind_signals()
         self._load_initial_theme()
-        self._mpris_obj = self.register_mpris()
+
+        if IS_LINUX:
+            self._mpris_obj = self.register_mpris()
 
         if initial_folder:
             self.set_folder(initial_folder, show_status=False)
