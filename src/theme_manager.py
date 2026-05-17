@@ -189,7 +189,7 @@ QLabel {{
     border: {border}px solid {p['border']};
     border-radius: {radius}px;
 }}
-#folderLabel, #songLabel, #statusLabel {{
+#songLabel, #statusLabel {{
     background-color: {p['muted_bg']};
     border: {border}px solid {p['border']};
     border-radius: {radius}px;
@@ -220,11 +220,11 @@ QPushButton:pressed {{
     padding-left: 6px;
     padding-top: 6px;
 }}
-#browseButton, #downloadButton, #shuffleButton {{
+#downloadButton, #shuffleButton {{
     background-color: {p['accent']};
     color: {p['accent_text']};
 }}
-#browseButton:hover, #downloadButton:hover, #shuffleButton:hover {{
+#downloadButton:hover, #shuffleButton:hover {{
     background-color: {p['accent_hover']};
 }}
 #playButton {{

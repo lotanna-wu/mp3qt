@@ -4,6 +4,7 @@ import io
 import os
 import random
 import threading
+import sys
 
 import yt_dlp
 from PySide6.QtCore import QSignalBlocker, Qt, QTimer, Signal, QUrl
@@ -26,7 +27,6 @@ from PySide6.QtWidgets import (
 
 from PySide6.QtDBus import QDBusConnection
 from PySide6.QtDBus import QDBusMessage, QDBusObjectPath, QDBusVariant
-from mpris import MprisRootAdaptor, MprisPlayerAdaptor
 from media import Mixer
 
 try:
@@ -50,6 +50,8 @@ PROJECT_ROOT = os.path.abspath(os.path.join(CURRENT_DIR, ".."))
 from utils import get_ffmpeg_path, get_resource_path, load_config, save_config
 from theme_manager import ThemeError, ThemeManager
 
+if sys.platform == "linux":
+    from mpris import MprisPlayerAdaptor, MprisRootAdaptor
 
 class MusicPlayer(QMainWindow):
     status_update = Signal(str, str)
@@ -90,6 +92,12 @@ class MusicPlayer(QMainWindow):
 
     def _setup_ui(self):
         menu = self.menuBar()
+
+        playlist_menu = menu.addMenu("Playlist")
+        load_playlist_action = QAction("Load Playlist...", self)
+        load_playlist_action.triggered.connect(self.browse_folder)
+        playlist_menu.addAction(load_playlist_action)
+
         theme_menu = menu.addMenu("Theme")
         load_theme_action = QAction("Load Theme...", self)
         load_theme_action.triggered.connect(self.choose_theme_file)
@@ -105,6 +113,7 @@ class MusicPlayer(QMainWindow):
         reset_theme_action.triggered.connect(self.reset_theme)
         theme_menu.addAction(reset_theme_action)
 
+
         root = QWidget(self)
         root.setObjectName("rootWidget")
         self.setCentralWidget(root)
@@ -119,22 +128,6 @@ class MusicPlayer(QMainWindow):
         self.search_input.textChanged.connect(self.handle_playlist_search)
         search_row.addWidget(self.search_input)
         main_layout.addLayout(search_row)
-
-        folder_row = QHBoxLayout()
-        folder_row.addWidget(QLabel("Folder:"))
-        self.folder_label = QLabel("No folder selected")
-        self.folder_label.setObjectName("folderLabel")
-        self.folder_label.setMinimumHeight(28)
-        self.folder_label.setAlignment(Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft)
-        self.folder_label.setFrameShape(QFrame.Shape.Panel)
-        self.folder_label.setFrameShadow(QFrame.Shadow.Sunken)
-        self.folder_label.setLineWidth(1)
-        folder_row.addWidget(self.folder_label, 1)
-        self.browse_btn = QPushButton("Browse")
-        self.browse_btn.setObjectName("browseButton")
-        self.browse_btn.clicked.connect(self.browse_folder)
-        folder_row.addWidget(self.browse_btn)
-        main_layout.addLayout(folder_row)
 
         now_row = QHBoxLayout()
         now_row.addWidget(QLabel("Now Playing:"))
@@ -327,7 +320,6 @@ class MusicPlayer(QMainWindow):
         qss = self.theme_manager.build_stylesheet(theme)
         self.setStyleSheet(qss)
 
-        self._apply_field_shadow(self.folder_label, theme["effects"].get("field_shadow", "sunken"))
         self._apply_field_shadow(self.current_song_label, theme["effects"].get("field_shadow", "sunken"))
         self._apply_field_shadow(self.status_label, theme["effects"].get("status_shadow", "raised"))
 
@@ -374,7 +366,6 @@ class MusicPlayer(QMainWindow):
                 self.update_status("Invalid folder selected", "error")
             return False
         self.current_folder = folder
-        self.folder_label.setText(folder)
         self.load_playlist()
         if show_status:
             self.update_status("Folder loaded successfully", "success")
