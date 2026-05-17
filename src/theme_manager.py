@@ -1,6 +1,7 @@
 import json
 import os
 import sys
+from pathlib import Path
 
 
 class ThemeError(Exception):
@@ -72,20 +73,15 @@ def _merge_dict(base, override):
 
 class ThemeManager:
     def __init__(self, project_root):
-        self.project_root = project_root
-        runtime_root = getattr(sys, "_MEIPASS", project_root)
-        primary_theme_dir = os.path.join(project_root, "themes")
+        self.project_root = os.path.abspath(project_root)
+        runtime_root = os.path.abspath(getattr(sys, "_MEIPASS", self.project_root))
         bundled_theme_dir = os.path.join(runtime_root, "themes")
-        legacy_assets_theme_dir = os.path.join(project_root, "assets", "qt-themes")
-        legacy_theme_dir = os.path.join(project_root, "qt-themes")
-        if os.path.isdir(primary_theme_dir):
-            self.theme_dir = primary_theme_dir
-        elif os.path.isdir(bundled_theme_dir):
-            self.theme_dir = bundled_theme_dir
-        elif os.path.isdir(legacy_assets_theme_dir):
-            self.theme_dir = legacy_assets_theme_dir
+        project_theme_dir = os.path.join(self.project_root, "themes")
+
+        if os.path.isdir(project_theme_dir):
+            self.theme_dir = project_theme_dir
         else:
-            self.theme_dir = legacy_theme_dir
+            self.theme_dir = bundled_theme_dir
         self.default_theme_path = os.path.join(self.theme_dir, "default.json")
 
     def load_theme(self, theme_path):
@@ -140,6 +136,7 @@ class ThemeManager:
         images = theme.get("images", {})
         bg = images.get("window_bg", "")
         if bg:
+            bg = os.path.expanduser(bg)
             if not os.path.isabs(bg):
                 bg = os.path.abspath(os.path.join(os.path.dirname(source_path), bg))
             if not os.path.isfile(bg):
@@ -165,7 +162,7 @@ class ThemeManager:
 
         root_bg = f"background-color: {p['window_bg']};"
         if bg_image:
-            safe_path = bg_image.replace("\\", "/")
+            safe_path = Path(bg_image).as_uri()
             root_bg += (
                 f"background-image: url('{safe_path}');"
                 "background-position: center;"
