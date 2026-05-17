@@ -38,7 +38,7 @@ done
 (cd "${project_root}" && pyinstaller \
   --distpath "${project_root}/dist" \
   --workpath "${project_root}/build" \
-  "${project_root}/app.spec")
+  "${project_root}/linux.spec")
 
 if [[ ! -d "${build_dir}" ]]; then
   echo "Build not found after PyInstaller run: ${build_dir}"

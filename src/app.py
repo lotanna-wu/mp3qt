@@ -887,6 +887,9 @@ class MusicPlayer(QMainWindow):
         return len(self.ui_playlist) > 1
 
     def get_mpris_metadata(self):
+        if not IS_LINUX:
+            return
+        
         if not self.mixer.current_track_path:
             return {
                 "mpris:trackid": QDBusObjectPath("/org/mpris/MediaPlayer2/TrackList/NoTrack"),
@@ -904,6 +907,9 @@ class MusicPlayer(QMainWindow):
         return metadata
 
     def _emit_mpris_properties_changed(self, changed_properties):
+        if not IS_LINUX:
+            return
+        
         if not self._mpris_obj:
             return
 
@@ -930,6 +936,9 @@ class MusicPlayer(QMainWindow):
         return f"/com/github/lowu/mp3qt/track/{digest}"
         
     def register_mpris(self):
+        if not IS_LINUX:
+            return
+        
         bus = QDBusConnection.sessionBus()
         if not bus.isConnected():
             print("Could not connect to session bus")

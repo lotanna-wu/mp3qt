@@ -21,7 +21,7 @@ For a system-wide install instead of a user install:
 - If `ffmpeg` is missing, downloads that require conversion will fail and show an error.
 
 ## PyInstaller builds
-- Linux: `pyinstaller app.spec`
+- Linux: `pyinstaller linux.spec`
 
 ## Linux desktop integration
 `scripts/install.sh` builds the Linux bundle, installs the desktop entry and icon, and creates the `mp3qt` CLI launcher.
