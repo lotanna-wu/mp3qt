@@ -10,12 +10,6 @@ pip install -r requirements.txt
 ./scripts/install.sh
 ```
 
-For a system-wide install instead of a user install:
-
-```bash
-./scripts/install.sh --system
-```
-
 ## FFmpeg
 - The app uses `ffmpeg` from your system `PATH`
 - If `ffmpeg` is missing, downloads that require conversion will fail and show an error.
@@ -25,8 +19,8 @@ For a system-wide install instead of a user install:
 
 ## Linux desktop integration
 `scripts/install.sh` builds the Linux bundle, installs the desktop entry and icon, and creates the `mp3qt` CLI launcher.
-- Install (user): `./scripts/install.sh`
-- Install (system): `./scripts/install.sh --system`
+- Install: `./scripts/install.sh`
+- Uninstall: `./scripts/uninstall.sh`
 
 ## CLI usage
 - Open with a folder: `mp3qt ~/Music`

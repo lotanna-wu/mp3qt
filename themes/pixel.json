@@ -1,5 +1,5 @@
 {
-  "meta": {"name": "Pixel DOS", "version": 1, "author": "mp3-player"},
+  "meta": {"name": "Pixel", "version": 1, "author": "mp3qt"},
   "palette": {
     "window_bg": "#0f1011",
     "panel_bg": "#1a1c1f",
@@ -20,7 +20,7 @@
     "status_error": "#ff9ca5"
   },
   "typography": {"font_family": "Courier New", "font_size": 10, "title_font_size": 10, "list_font_size": 10},
-  "metrics": {"window_width": 860, "window_height": 560, "padding": 10, "spacing": 8, "border_width": 1, "button_border_width": 1, "radius": 0, "album_art_width": 260, "album_art_height": 260},
+  "metrics": {"window_width": 860, "window_height": 560, "padding": 10, "spacing": 8, "border_width": 1, "button_border_width": 1, "radius": 0, "album_art_width": 340, "album_art_height": 340},
   "effects": {"field_shadow": "raised", "status_shadow": "raised"},
   "images": {"window_bg": ""},
   "qss": "QPushButton { text-transform: uppercase; }"

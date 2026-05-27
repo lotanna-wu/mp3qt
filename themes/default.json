@@ -1,5 +1,5 @@
 {
-  "meta": {"name": "Default Retro", "version": 1, "author": "mp3-player"},
+  "meta": {"name": "Default", "version": 1, "author": "mp3qt"},
   "palette": {
     "window_bg": "#d4d0c8",
     "panel_bg": "#c8c3b6",
@@ -26,8 +26,8 @@
     "list_font_size": 10
   },
   "metrics": {
-    "window_width": 860,
-    "window_height": 560,
+    "window_width": 700,
+    "window_height": 480,
     "padding": 12,
     "spacing": 8,
     "border_width": 1,

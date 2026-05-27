@@ -102,26 +102,27 @@ class MusicPlayer(QMainWindow):
     def _setup_ui(self):
         menu = self.menuBar()
 
-        playlist_menu = menu.addMenu("Playlist")
         load_playlist_action = QAction("Load Playlist...", self)
         load_playlist_action.triggered.connect(self.browse_folder)
-        playlist_menu.addAction(load_playlist_action)
+        set_default_action = QAction("Set As Default", self)
+        set_default_action.triggered.connect(self.set_default)
 
-        theme_menu = menu.addMenu("Theme")
+        playlist_menu = menu.addMenu("Playlist")
+        playlist_menu.addAction(load_playlist_action)
+        playlist_menu.addAction(set_default_action)
+
         load_theme_action = QAction("Load Theme...", self)
         load_theme_action.triggered.connect(self.choose_theme_file)
-        theme_menu.addAction(load_theme_action)
-
         reload_theme_action = QAction("Reload Current Theme", self)
         reload_theme_action.triggered.connect(self.reload_current_theme)
-        theme_menu.addAction(reload_theme_action)
-
-        theme_menu.addSeparator()
-
         reset_theme_action = QAction("Reset to Default", self)
         reset_theme_action.triggered.connect(self.reset_theme)
-        theme_menu.addAction(reset_theme_action)
 
+        theme_menu = menu.addMenu("Theme")
+        theme_menu.addAction(reload_theme_action)
+        theme_menu.addAction(load_theme_action)
+        theme_menu.addSeparator()
+        theme_menu.addAction(reset_theme_action)
 
         root = QWidget(self)
         root.setObjectName("rootWidget")
@@ -285,7 +286,7 @@ class MusicPlayer(QMainWindow):
             theme, resolved_path = self.theme_manager.load_theme(theme_path)
         except ThemeError as exc:
             self.update_status(str(exc), "error")
-            QMessageBox.warning(self, "Theme Load Error", str(exc))
+            QMessageBox.warning(None, "Theme Load Error", str(exc))
             return False
 
         self.apply_theme(theme, resolved_path, persist=persist)
@@ -368,6 +369,7 @@ class MusicPlayer(QMainWindow):
         folder = selected_files[0] if selected_files else ""
         if folder:
             self.set_folder(folder)
+    
 
     def set_folder(self, folder, show_status=True):
         if not folder or not os.path.isdir(folder):
@@ -379,6 +381,16 @@ class MusicPlayer(QMainWindow):
         if show_status:
             self.update_status("Folder loaded successfully", "success")
         return True
+    
+    def set_default(self):
+        if self.current_folder == None:
+            QMessageBox.warning(None, "No Playlist", "Open a playlist first to set it as a default")
+            return
+        
+        config = load_config()
+        config["default_directory"] = self.current_folder
+        QMessageBox.information(None, "Success", f"Default directory: {self.current_folder}")
+        save_config(config)
 
     def update_status(self, message, level="default"):
         palette = (self.theme or {}).get("palette", {})
@@ -437,13 +449,13 @@ class MusicPlayer(QMainWindow):
     def download_song(self):
         url = self.url_input.text().strip()
         if not url:
-            QMessageBox.warning(self, "No URL", "Enter a valid URL")
+            QMessageBox.warning(None, "No URL", "Enter a valid URL")
             return
         if not self.current_folder:
-            QMessageBox.warning(self, "No Folder", "Select a folder first")
+            QMessageBox.warning(None, "No Folder", "Select a folder first")
             return
         if self.is_downloading:
-            QMessageBox.information(self, "Download in Progress", "A download is already in progress")
+            QMessageBox.information(None, "Download in Progress", "A download is already in progress")
             return
         thread = threading.Thread(target=self._download_song_thread, args=(url,), daemon=True)
         thread.start()
@@ -602,7 +614,7 @@ class MusicPlayer(QMainWindow):
 
     def toggle_play(self):
         if not self.ui_playlist:
-            QMessageBox.warning(self, "No Music", "No songs in queue")
+            QMessageBox.warning(None, "No Music", "No songs are loaded")
             return
 
         if self.mixer.is_paused():
@@ -707,7 +719,7 @@ class MusicPlayer(QMainWindow):
                 "CanPause": self.can_pause(),
             })
         except Exception as exc:
-            QMessageBox.critical(self, "Playback Error", f"Couldn't play {song_path}\nError: {exc}")
+            QMessageBox.critical(None, "Playback Error", f"Couldn't play {song_path}\nError: {exc}")
             self.mixer.stop()
             self.mixer.clear_track_metadata()
             self._reset_seek_ui()
@@ -834,7 +846,7 @@ class MusicPlayer(QMainWindow):
 
     def shuffle_playlist(self):
         if not self.ui_playlist:
-            QMessageBox.warning(self, "No Playlist", "Load songs first")
+            QMessageBox.warning(None, "No Playlist", "Load songs first")
             return
         random.shuffle(self.ui_playlist)
         self._refresh_playlist_widget()
@@ -874,7 +886,6 @@ class MusicPlayer(QMainWindow):
         return "Stopped"
 
     def can_play(self):
-        # return True
         return bool(self.ui_playlist)
 
     def can_pause(self):
