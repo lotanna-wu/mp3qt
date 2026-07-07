@@ -15,7 +15,8 @@ pip install -r requirements.txt
 - If `ffmpeg` is missing, downloads that require conversion will fail and show an error.
 
 ## PyInstaller builds
-- Linux: `pyinstaller linux.spec`
+- `pyinstaller linux.spec`
+- 'pyinstaller win.spec
 
 ## Linux desktop integration
 `scripts/install.sh` builds the Linux bundle, installs the desktop entry and icon, and creates the `mp3qt` CLI launcher.
