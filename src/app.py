@@ -1,5 +1,6 @@
 import glob
 import hashlib
+import html
 import io
 import os
 import random
@@ -8,7 +9,7 @@ import sys
 
 import yt_dlp
 from PySide6.QtCore import QSignalBlocker, Qt, QTimer, Signal, QUrl
-from PySide6.QtGui import QAction, QFont, QIcon, QImage, QPixmap
+from PySide6.QtGui import QAction, QFont, QFontMetrics, QIcon, QImage, QPixmap
 from PySide6.QtWidgets import (
     QFileDialog,
     QFrame,
@@ -98,6 +99,11 @@ class MusicPlayer(QMainWindow):
 
         if initial_folder:
             self.set_folder(initial_folder, show_status=False)
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        if hasattr(self, "status_label"):
+            self._refresh_status_display()
 
     def _setup_ui(self):
         menu = self.menuBar()
@@ -203,6 +209,7 @@ class MusicPlayer(QMainWindow):
         self.status_label.setFrameShape(QFrame.Shape.Panel)
         self.status_label.setFrameShadow(QFrame.Shadow.Raised)
         self.status_label.setLineWidth(1)
+        self.status_label.setTextFormat(Qt.TextFormat.RichText)
         status_row.addWidget(self.status_label)
         main_layout.addLayout(status_row)
 
@@ -340,6 +347,7 @@ class MusicPlayer(QMainWindow):
         # force full layout recalculation before showing
         self.centralWidget().updateGeometry()
         self.centralWidget().layout().activate()
+        self._refresh_status_display()
         QTimer.singleShot(0, self.show)
 
         if persist:
@@ -377,6 +385,7 @@ class MusicPlayer(QMainWindow):
                 self.update_status("Invalid folder selected", "error")
             return False
         self.current_folder = folder
+        self._refresh_status_display()
         self.load_playlist()
         if show_status:
             self.update_status("Folder loaded successfully", "success")
@@ -393,7 +402,13 @@ class MusicPlayer(QMainWindow):
         save_config(config)
 
     def update_status(self, message, level="default"):
+        self._status_message = message
+        self._status_level = level
+        self._refresh_status_display()
+
+    def _refresh_status_display(self):
         palette = (self.theme or {}).get("palette", {})
+        level = getattr(self, "_status_level", "default")
         if level == "error":
             color = palette.get("status_error", "#b00020")
         elif level == "success":
@@ -402,8 +417,25 @@ class MusicPlayer(QMainWindow):
             color = palette.get("status_info", "#0d47a1")
         else:
             color = palette.get("text", "#333333")
-        self.status_label.setText(message)
-        self.status_label.setStyleSheet(f"color: {color};")
+        muted_color = palette.get("muted_text", "#777777")
+
+        message = getattr(self, "_status_message", "Ready")
+        folder_text = self.current_folder or ""
+        if folder_text:
+            # use the window width rather than the label's own width, since the
+            # label isn't laid out yet the first time this runs (before show())
+            available_width = max(0, self.width() // 2 - 40)
+            metrics = QFontMetrics(self.status_label.font())
+            folder_text = metrics.elidedText(
+                folder_text, Qt.TextElideMode.ElideMiddle, available_width
+            )
+
+        self.status_label.setText(
+            '<table width="100%" cellspacing="0"><tr>'
+            f'<td align="left" style="color:{color};">{html.escape(message)}</td>'
+            f'<td align="right" style="color:{muted_color};">{html.escape(folder_text)}</td>'
+            "</tr></table>"
+        )
 
     def handle_playlist_search(self, value):
         query = value.strip().lower()
