@@ -5,6 +5,7 @@ import sys
 from PySide6.QtWidgets import QApplication
 
 from app import MusicPlayer
+from single_instance import SingleInstance
 from utils import load_config, save_config
 
 
@@ -61,7 +62,23 @@ def main():
         return 1
 
     qapp = QApplication(sys.argv)
+
+    instance = SingleInstance()
+    if not instance.try_acquire(payload=launch_dir or ""):
+        print("mp3qt is already running -- focusing existing window")
+        return 0
+
     player = MusicPlayer(initial_folder=launch_dir)
+
+    def on_message(payload):
+        player.showNormal()
+        player.raise_()
+        player.activateWindow()
+        if payload and os.path.isdir(payload):
+            player.set_folder(payload)
+
+    instance.message_received.connect(on_message)
+
     player.show()
     return qapp.exec()
 

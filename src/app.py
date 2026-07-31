@@ -422,8 +422,6 @@ class MusicPlayer(QMainWindow):
         message = getattr(self, "_status_message", "Ready")
         folder_text = self.current_folder or ""
         if folder_text:
-            # use the window width rather than the label's own width, since the
-            # label isn't laid out yet the first time this runs (before show())
             available_width = max(0, self.width() // 2 - 40)
             metrics = QFontMetrics(self.status_label.font())
             folder_text = metrics.elidedText(
@@ -516,13 +514,13 @@ class MusicPlayer(QMainWindow):
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 info = ydl.extract_info(url, download=False)
                 video_title = info.get("title", "Unknown")
-                self.status_update.emit(f"Downloading: {video_title[:50]}...", "info")
+                self.status_update.emit(f"Downloading: {video_title[:25]}...", "info")
                 ydl.download([url])
                 downloaded_path = ydl.prepare_filename(info)
 
             self._crop_embedded_thumbnail(downloaded_path)
 
-            self.status_update.emit(f"Downloaded: {video_title[:40]}...", "success")
+            self.status_update.emit(f"Downloaded: {video_title[:26]}...", "success")
             self.download_clear_url.emit()
             self.reload_playlist_signal.emit()
         except Exception as exc:
@@ -534,7 +532,7 @@ class MusicPlayer(QMainWindow):
             elif "ffmpeg" in error_msg.lower():
                 error_msg = "Download failed: FFmpeg not found in PATH"
             else:
-                error_msg = f"Download failed: {error_msg[:70]}..."
+                error_msg = f"Download failed: {error_msg[:20]}..."
             self.status_update.emit(error_msg, "error")
         finally:
             self.is_downloading = False

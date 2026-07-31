@@ -1,0 +1,27 @@
+{
+  "meta": {"name": "Matugen", "version": 2, "author": "mp3qt"},
+  "palette": {
+    "window_bg": "{{colors.surface_container.default.hex}}",
+    "panel_bg": "{{colors.surface_container_highest.default.hex}}",
+    "input_bg": "{{colors.surface_container_low.default.hex}}",
+    "muted_bg": "{{colors.surface_container_high.default.hex}}",
+    "text": "{{colors.on_surface.default.hex}}",
+    "muted_text": "{{colors.on_surface_variant.default.hex}}",
+    "border": "{{colors.outline_variant.default.hex}}",
+    "accent": "{{colors.primary_container.default.hex}}",
+    "accent_text": "{{colors.on_primary_container.default.hex}}",
+    "play": "{{colors.secondary_container.default.hex}}",
+    "play_hover": "{{colors.secondary.default.hex}}",
+    "accent_hover": "{{colors.primary.default.hex}}",
+    "selection_bg": "{{colors.primary_container.default.hex}}",
+    "selection_text": "{{colors.on_primary_container.default.hex}}",
+    "status_info": "{{colors.on_surface_variant.default.hex}}",
+    "status_success": "{{colors.secondary.default.hex}}",
+    "status_error": "{{colors.error.default.hex}}"
+  },
+  "typography": {"font_family": "Courier New", "font_size": 10, "title_font_size": 10, "list_font_size": 10},
+  "metrics": {"window_width": 600, "window_height": 320, "padding": 10, "spacing": 8, "border_width": 1, "button_border_width": 1, "radius": 0, "album_art_width": 200, "album_art_height": 200},
+  "effects": {"field_shadow": "sunken", "status_shadow": "solid"},
+  "images": {"window_bg": ""},
+  "qss": ""
+}

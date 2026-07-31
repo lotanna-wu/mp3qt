@@ -1,0 +1,27 @@
+{
+  "meta": {"name": "Purple", "version": 2, "author": "mp3qt"},
+  "palette": {
+    "window_bg": "#211e24",
+    "panel_bg": "#37333a",
+    "input_bg": "#1d1a20",
+    "muted_bg": "#2c292f",
+    "text": "#e7e0e8",
+    "muted_text": "#ccc4cf",
+    "border": "#4a454e",
+    "accent": "#523c73",
+    "accent_text": "#eddcff",
+    "play": "#4c4357",
+    "play_hover": "#cec2da",
+    "accent_hover": "#d6bbfb",
+    "selection_bg": "#523c73",
+    "selection_text": "#eddcff",
+    "status_info": "#ccc4cf",
+    "status_success": "#cec2da",
+    "status_error": "#ffb4ab"
+  },
+  "typography": {"font_family": "JetBrainsMono Nerd Font", "font_size": 10, "title_font_size": 10, "list_font_size": 10},
+  "metrics": {"window_width": 600, "window_height": 320, "padding": 10, "spacing": 8, "border_width": 1, "button_border_width": 1, "radius": 0, "album_art_width": 200, "album_art_height": 200},
+  "effects": {"field_shadow": "sunken", "status_shadow": "solid"},
+  "images": {"window_bg": ""},
+  "qss": ""
+}

@@ -18,8 +18,12 @@ These themes are for the `qt-src` app and use a new schema.
 
 ```json
 "images": {
-  "window_bg": "../assets/wallpaper.png"
+  "window_bg": "/path/to/wallpaper.png"
 }
 ```
 
 If the image path is invalid, the app falls back to a solid background color.
+
+## Matugen
+
+For Matugen support, use `matugen/matugen.json` as your input file in your matugen config.
