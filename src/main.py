@@ -1,12 +1,14 @@
 import argparse
 import os
 import sys
+import signal
 
 from PySide6.QtWidgets import QApplication
 
 from app import MusicPlayer
 from single_instance import SingleInstance
 from utils import load_config, save_config
+IS_LINUX = sys.platform.startswith("linux")
 
 
 def main():
@@ -78,6 +80,13 @@ def main():
             player.set_folder(payload)
 
     instance.message_received.connect(on_message)
+    
+    if IS_LINUX:
+        def theme_reload_handler(signum, frame):
+            if not player:
+                return
+            player.reload_current_theme()
+        signal.signal(signal.SIGUSR1, theme_reload_handler)
 
     player.show()
     return qapp.exec()
