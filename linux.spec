@@ -20,6 +20,7 @@ a = Analysis(
         "PySide6.QtWidgets",
         "PySide6.QtMultimedia",
         "yt_dlp",
+        "yt_dlp_ejs",
         "mutagen",
         "PIL",
     ],

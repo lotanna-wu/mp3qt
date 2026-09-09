@@ -1,5 +1,5 @@
 PySide6 # Qt UI
-yt-dlp # downloading audio
+yt-dlp[default] # downloading audio
 mutagen # audio metadata
 Pillow # image processing
 requests

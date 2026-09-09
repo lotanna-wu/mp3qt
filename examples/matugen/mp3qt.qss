@@ -1,0 +1,117 @@
+
+QWidget {
+    color: {{colors.on_surface.default.hex}};
+    font-family: "Courier New";
+    font-size: 10pt;
+}
+#rootWidget {
+    background-color: {{colors.surface_container.default.hex}};
+}
+QLabel {
+    background: transparent;
+}
+#albumArt {
+    background-color: {{colors.surface_container_high.default.hex}};
+    border: 1px solid {{colors.outline_variant.default.hex}};
+    border-radius: 0px;
+}
+#songLabel, #statusLabel {
+    background-color: {{colors.surface_container_high.default.hex}};
+    border: 1px solid {{colors.outline_variant.default.hex}};
+    border-radius: 0px;
+    padding: 4px 8px;
+}
+QLineEdit, QListWidget {
+    background-color: {{colors.surface_container_low.default.hex}};
+    border: 1px solid {{colors.outline_variant.default.hex}};
+    border-radius: 0px;
+    padding: 4px;
+    selection-background-color: {{colors.primary_container.default.hex}};
+    selection-color: {{colors.on_primary_container.default.hex}};
+}
+QListWidget {
+    font-size: 10pt;
+}
+QPushButton {
+    background-color: {{colors.surface_container_highest.default.hex}};
+    color: {{colors.on_surface.default.hex}};
+    border: 1px solid {{colors.outline_variant.default.hex}};
+    border-radius: 0px;
+    padding: 5px 10px;
+}
+QPushButton:hover {
+    background-color: {{colors.surface_container_high.default.hex}};
+}
+QPushButton:pressed {
+    padding-left: 6px;
+    padding-top: 6px;
+}
+#downloadButton, #shuffleButton {
+    background-color: {{colors.primary_container.default.hex}};
+    color: {{colors.on_primary_container.default.hex}};
+}
+#downloadButton:hover, #shuffleButton:hover {
+    background-color: {{colors.primary.default.hex}};
+}
+#playButton {
+    background-color: {{colors.secondary_container.default.hex}};
+    color: {{colors.on_primary_container.default.hex}};
+}
+#playButton:hover {
+    background-color: {{colors.secondary.default.hex}};
+}
+QMenuBar {
+    background-color: {{colors.surface_container_highest.default.hex}};
+    border: 1px solid {{colors.outline_variant.default.hex}};
+}
+QMenu {
+    background-color: {{colors.surface_container_highest.default.hex}};
+    border: 1px solid {{colors.outline_variant.default.hex}};
+}
+QScrollBar:vertical {
+    background: {{colors.surface_container.default.hex}};
+    width: 12px;
+    margin: 0;
+}
+QScrollBar::handle:vertical {
+    background: {{colors.primary_container.default.hex}};
+    border: 1px solid {{colors.outline_variant.default.hex}};
+    min-height: 24px;
+}
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+    background: {{colors.surface_container_highest.default.hex}};
+    border: 1px solid {{colors.outline_variant.default.hex}};
+    height: 12px;
+}
+QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
+    background: {{colors.surface_container_high.default.hex}};
+}
+QScrollBar:horizontal {
+    background: {{colors.surface_container.default.hex}};
+    height: 12px;
+    margin: 0;
+}
+QScrollBar::handle:horizontal {
+    background: {{colors.primary_container.default.hex}};
+    border: 1px solid {{colors.outline_variant.default.hex}};
+    min-width: 24px;
+}
+QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {
+    background: {{colors.surface_container_highest.default.hex}};
+    border: 1px solid {{colors.outline_variant.default.hex}};
+    width: 12px;
+}
+QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal {
+    background: {{colors.surface_container_high.default.hex}};
+}
+QSlider::groove:horizontal {
+    border: 1px solid {{colors.outline_variant.default.hex}};
+    height: 8px;
+    background: {{colors.surface_container_high.default.hex}};
+}
+QSlider::handle:horizontal {
+    background: {{colors.primary_container.default.hex}};
+    border: 1px solid {{colors.outline_variant.default.hex}};
+    width: 14px;
+    margin: -4px 0;
+}

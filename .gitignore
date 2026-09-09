@@ -8,3 +8,4 @@ __pycache__/
 
 custom/
 custom.spec
+requirements.local.txt

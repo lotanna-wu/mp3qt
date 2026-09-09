@@ -79,7 +79,7 @@ def main():
         if payload and os.path.isdir(payload):
             player.set_folder(payload)
 
-    instance.message_received.connect(on_message)
+    instance.message_received.connect(lambda payload: on_message(payload))
     
     if IS_LINUX:
         def theme_reload_handler(signum, frame):

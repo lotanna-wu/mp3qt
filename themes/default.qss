@@ -1,0 +1,117 @@
+
+QWidget {
+    color: #141414;
+    font-family: "Courier New";
+    font-size: 10pt;
+}
+#rootWidget {
+    background-color: #d4d0c8;
+}
+QLabel {
+    background: transparent;
+}
+#albumArt {
+    background-color: #bcb8ad;
+    border: 1px solid #5f5a50;
+    border-radius: 0px;
+}
+#songLabel, #statusLabel {
+    background-color: #bcb8ad;
+    border: 1px solid #5f5a50;
+    border-radius: 0px;
+    padding: 4px 8px;
+}
+QLineEdit, QListWidget {
+    background-color: #ffffff;
+    border: 1px solid #5f5a50;
+    border-radius: 0px;
+    padding: 4px;
+    selection-background-color: #0a2f7a;
+    selection-color: #f5f5f5;
+}
+QListWidget {
+    font-size: 10pt;
+}
+QPushButton {
+    background-color: #c8c3b6;
+    color: #141414;
+    border: 1px solid #5f5a50;
+    border-radius: 0px;
+    padding: 5px 10px;
+}
+QPushButton:hover {
+    background-color: #bcb8ad;
+}
+QPushButton:pressed {
+    padding-left: 6px;
+    padding-top: 6px;
+}
+#downloadButton, #shuffleButton {
+    background-color: #0a2f7a;
+    color: #f5f5f5;
+}
+#downloadButton:hover, #shuffleButton:hover {
+    background-color: #244ea5;
+}
+#playButton {
+    background-color: #1f6a2a;
+    color: #f5f5f5;
+}
+#playButton:hover {
+    background-color: #2e8b3f;
+}
+QMenuBar {
+    background-color: #c8c3b6;
+    border: 1px solid #5f5a50;
+}
+QMenu {
+    background-color: #c8c3b6;
+    border: 1px solid #5f5a50;
+}
+QScrollBar:vertical {
+    background: #d4d0c8;
+    width: 12px;
+    margin: 0;
+}
+QScrollBar::handle:vertical {
+    background: #0a2f7a;
+    border: 1px solid #5f5a50;
+    min-height: 24px;
+}
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+    background: #c8c3b6;
+    border: 1px solid #5f5a50;
+    height: 12px;
+}
+QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
+    background: #bcb8ad;
+}
+QScrollBar:horizontal {
+    background: #d4d0c8;
+    height: 12px;
+    margin: 0;
+}
+QScrollBar::handle:horizontal {
+    background: #0a2f7a;
+    border: 1px solid #5f5a50;
+    min-width: 24px;
+}
+QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {
+    background: #c8c3b6;
+    border: 1px solid #5f5a50;
+    width: 12px;
+}
+QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal {
+    background: #bcb8ad;
+}
+QSlider::groove:horizontal {
+    border: 1px solid #5f5a50;
+    height: 8px;
+    background: #bcb8ad;
+}
+QSlider::handle:horizontal {
+    background: #0a2f7a;
+    border: 1px solid #5f5a50;
+    width: 14px;
+    margin: -4px 0;
+}

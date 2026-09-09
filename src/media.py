@@ -79,7 +79,7 @@ class Mixer(QObject):
         self.media_devices = QMediaDevices()
         self.media_devices.audioOutputsChanged.connect(self.on_audio_output_changed)
         
-        self.player.mediaStatusChanged.connect(self.on_status)
+        self.player.mediaStatusChanged.connect(lambda status: self.on_status(status))
         self.player.positionChanged.connect(self.position_changed.emit)
         self.player.durationChanged.connect(self.duration_changed.emit)
         self.player.playbackStateChanged.connect(self.playback_state_changed.emit)

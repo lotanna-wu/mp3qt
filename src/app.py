@@ -8,11 +8,11 @@ import threading
 import sys
 
 import yt_dlp
-from PySide6.QtCore import QSignalBlocker, Qt, QTimer, Signal, QUrl
-from PySide6.QtGui import QAction, QFont, QFontMetrics, QIcon, QImage, QPixmap
+from yt_dlp.utils import DownloadError, ExtractorError
+from PySide6.QtCore import QSignalBlocker, Qt, Signal, QUrl
+from PySide6.QtGui import QAction, QFontMetrics, QIcon, QImage, QPalette, QPixmap
 from PySide6.QtWidgets import (
     QFileDialog,
-    QFrame,
     QHBoxLayout,
     QLabel,
     QLineEdit,
@@ -47,7 +47,7 @@ CURRENT_DIR = os.path.abspath(os.path.dirname(__file__))
 PROJECT_ROOT = os.path.abspath(os.path.join(CURRENT_DIR, ".."))
 IS_LINUX = sys.platform.startswith("linux")
 
-from utils import get_ffmpeg_path, get_resource_path, load_config, save_config
+from utils import get_ffmpeg_path, get_node_path, get_resource_path, load_config, save_config
 from theme_manager import ThemeError, ThemeManager
 
 if IS_LINUX:
@@ -84,13 +84,13 @@ class MusicPlayer(QMainWindow):
         
         self.is_downloading = False
         self.current_theme_path = None
-        self.theme = None
         self.theme_manager = ThemeManager(PROJECT_ROOT)
         self._mpris_obj = None
         self._mpris_root_adaptor = None
         self._mpris_player_adaptor = None
 
         self._setup_ui()
+        self._apply_window_settings()
         self._bind_signals()
         self._load_initial_theme()
 
@@ -121,14 +121,14 @@ class MusicPlayer(QMainWindow):
         load_theme_action.triggered.connect(self.choose_theme_file)
         reload_theme_action = QAction("Reload Current Theme", self)
         reload_theme_action.triggered.connect(self.reload_current_theme)
-        reset_theme_action = QAction("Reset to Default", self)
-        reset_theme_action.triggered.connect(self.reset_theme)
+        clear_theme_action = QAction("Clear Theme", self)
+        clear_theme_action.triggered.connect(lambda: self.clear_theme())
 
         theme_menu = menu.addMenu("Theme")
         theme_menu.addAction(reload_theme_action)
         theme_menu.addAction(load_theme_action)
         theme_menu.addSeparator()
-        theme_menu.addAction(reset_theme_action)
+        theme_menu.addAction(clear_theme_action)
 
         root = QWidget(self)
         root.setObjectName("rootWidget")
@@ -141,7 +141,7 @@ class MusicPlayer(QMainWindow):
         search_row.addWidget(QLabel("Search Playlist:"))
         self.search_input = QLineEdit()
         self.search_input.setPlaceholderText("Filter songs...")
-        self.search_input.textChanged.connect(self.handle_playlist_search)
+        self.search_input.textChanged.connect(lambda value: self.handle_playlist_search(value))
         search_row.addWidget(self.search_input)
         main_layout.addLayout(search_row)
 
@@ -151,9 +151,6 @@ class MusicPlayer(QMainWindow):
         self.current_song_label.setObjectName("songLabel")
         self.current_song_label.setMinimumHeight(28)
         self.current_song_label.setAlignment(Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft)
-        self.current_song_label.setFrameShape(QFrame.Shape.Panel)
-        self.current_song_label.setFrameShadow(QFrame.Shadow.Sunken)
-        self.current_song_label.setLineWidth(1)
         now_row.addWidget(self.current_song_label, 1)
         main_layout.addLayout(now_row)
 
@@ -162,8 +159,8 @@ class MusicPlayer(QMainWindow):
         playlist_column.setSpacing(6)
         self.playlist_box = QListWidget()
         self.playlist_box.setMinimumHeight(160)
-        self.playlist_box.currentRowChanged.connect(self.on_song_select)
-        self.playlist_box.itemClicked.connect(self.on_song_clicked)
+        self.playlist_box.currentRowChanged.connect(lambda row: self.on_song_select(row))
+        self.playlist_box.itemClicked.connect(lambda item: self.on_song_clicked(item))
         playlist_column.addWidget(self.playlist_box, 1)
 
         seek_row = QHBoxLayout()
@@ -178,15 +175,13 @@ class MusicPlayer(QMainWindow):
         self.seek_duration_label.setMinimumWidth(40)
         self.seek_duration_label.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         seek_row.addWidget(self.seek_duration_label)
-        self.seek_slider.sliderMoved.connect(self.mixer.set_position)
+        self.seek_slider.sliderMoved.connect(lambda pos: self.mixer.set_position(pos))
         playlist_column.addLayout(seek_row)
         content_row.addLayout(playlist_column, 1)
 
         self.album_art_label = QLabel("No Art")
         self.album_art_label.setObjectName("albumArt")
-        self.album_art_label.setFixedSize(300, 300)
         self.album_art_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.album_art_label.setStyleSheet("border: 1px solid #bdbdbd;")
         content_row.addWidget(self.album_art_label)
         main_layout.addLayout(content_row, 1)
 
@@ -206,9 +201,6 @@ class MusicPlayer(QMainWindow):
         self.status_label.setObjectName("statusLabel")
         self.status_label.setMinimumHeight(28)
         self.status_label.setAlignment(Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft)
-        self.status_label.setFrameShape(QFrame.Shape.Panel)
-        self.status_label.setFrameShadow(QFrame.Shadow.Raised)
-        self.status_label.setLineWidth(1)
         self.status_label.setTextFormat(Qt.TextFormat.RichText)
         status_row.addWidget(self.status_label)
         main_layout.addLayout(status_row)
@@ -224,7 +216,7 @@ class MusicPlayer(QMainWindow):
         controls_row.addWidget(self.play_btn)
 
         self.next_btn = QPushButton(">")
-        self.next_btn.clicked.connect(self.next_song)
+        self.next_btn.clicked.connect(lambda: self.next_song())
         controls_row.addWidget(self.next_btn)
 
         self.shuffle_btn = QPushButton("Shuffle")
@@ -238,34 +230,56 @@ class MusicPlayer(QMainWindow):
         self.volume_slider.setRange(0, 100)
         self.volume_slider.setValue(70)
         self.volume_slider.setFixedWidth(140)
-        self.volume_slider.valueChanged.connect(self.set_volume)
+        self.volume_slider.valueChanged.connect(lambda value: self.set_volume(value))
         controls_row.addWidget(self.volume_slider)
         main_layout.addLayout(controls_row)
 
         self.update_status("Ready", "default")
 
     def _bind_signals(self):
-        self.status_update.connect(self.update_status)
-        self.download_button_state.connect(self._set_download_button_state)
+        self.status_update.connect(lambda message, level: self.update_status(message, level))
+        self.download_button_state.connect(lambda enabled, text: self._set_download_button_state(enabled, text))
         self.download_clear_url.connect(self.url_input.clear)
         self.reload_playlist_signal.connect(self.load_playlist)
         self.seek_slider.sliderPressed.connect(self._on_seek_pressed)
-        self.seek_slider.sliderMoved.connect(self._on_seek_moved)
+        self.seek_slider.sliderMoved.connect(lambda position: self._on_seek_moved(position))
         self.seek_slider.sliderReleased.connect(self._on_seek_released)
-        self.mixer.position_changed.connect(self._on_player_position_changed)
-        self.mixer.duration_changed.connect(self._on_player_duration_changed)
+        self.mixer.position_changed.connect(lambda position: self._on_player_position_changed(position))
+        self.mixer.duration_changed.connect(lambda duration: self._on_player_duration_changed(duration))
+
+    def _apply_window_settings(self):
+        config = load_config()
+        window_cfg = config.get("window", {})
+        layout_cfg = config.get("layout", {})
+
+        padding = max(0, int(layout_cfg.get("padding", 12)))
+        spacing = max(0, int(layout_cfg.get("spacing", 8)))
+        self.centralWidget().layout().setContentsMargins(padding, padding, padding, padding)
+        self.centralWidget().layout().setSpacing(spacing)
+
+        width = max(640, int(window_cfg.get("width", 860)))
+        height = max(480, int(window_cfg.get("height", 560)))
+        if window_cfg.get("fixed_size", True):
+            self.setFixedSize(width, height)
+        else:
+            self.resize(width, height)
+
+        album_art_cfg = config.get("album_art", {})
+        album_art_width = max(120, int(album_art_cfg.get("width", 260)))
+        album_art_height = max(120, int(album_art_cfg.get("height", 260)))
+        self.album_art_label.setFixedSize(album_art_width, album_art_height)
 
     def _load_initial_theme(self):
         config = load_config()
-        configured_theme = config.get("qt_theme_path")
-        if configured_theme:
-            if self.apply_theme_from_path(configured_theme, persist=False):
+        theme_path = config.get("theme_path")
+        if theme_path:
+            if self.apply_theme_from_path(theme_path, persist=False):
                 return
-        self.reset_theme(show_status=False)
+        self.clear_theme(persist=False, show_status=False)
 
     def choose_theme_file(self):
         start_dir = self.theme_manager.theme_dir
-        dialog = QFileDialog(None, "Load Theme File", start_dir, "Theme JSON (*.json)")
+        dialog = QFileDialog(None, "Load Theme File", start_dir, "Theme QSS (*.qss)")
         dialog.setStyleSheet("")
         dialog.setFileMode(QFileDialog.FileMode.ExistingFile)
         if dialog.exec() != QFileDialog.DialogCode.Accepted:
@@ -282,88 +296,38 @@ class MusicPlayer(QMainWindow):
             return
         self.apply_theme_from_path(self.current_theme_path, persist=False)
 
-    def reset_theme(self, show_status=True):
-        theme, theme_path = self.theme_manager.load_default_theme()
-        self.apply_theme(theme, theme_path, persist=True)
+    def clear_theme(self, persist=True, show_status=True):
+        print(f"called w/ persist: {persist}, show_status: {show_status}")
+        self.current_theme_path = None
+        self.setStyleSheet("")
         if show_status:
-            self.update_status(f"Theme reset: {theme['meta'].get('name', 'default')}", "success")
+            self.update_status("Theme cleared: using system style", "success")
+        if persist:
+            config = load_config()
+            config["theme_path"] = None
+            save_config(config)
 
     def apply_theme_from_path(self, theme_path, persist=True):
         try:
-            theme, resolved_path = self.theme_manager.load_theme(theme_path)
+            qss, resolved_path = self.theme_manager.load_qss(theme_path)
         except ThemeError as exc:
             self.update_status(str(exc), "error")
             QMessageBox.warning(None, "Theme Load Error", str(exc))
             return False
 
-        self.apply_theme(theme, resolved_path, persist=persist)
-        self.update_status(f"Theme loaded: {theme['meta'].get('name', 'custom')}", "success")
-        return True
-
-    def apply_theme(self, theme, theme_path, persist=True):
-        self.theme = theme
-        self.current_theme_path = theme_path
-
-        m = theme["metrics"]
-        spacing = max(0, int(m.get("spacing", 8)))
-        padding = max(0, int(m.get("padding", 12)))
-        self.centralWidget().layout().setSpacing(spacing)
-        self.centralWidget().layout().setContentsMargins(padding, padding, padding, padding)
-
-        # fix for theming issue when newly loaded theme has a different size - LO
-        # unlock all size constraints first
-        self.setMinimumSize(0, 0)
-        self.setMaximumSize(16777215, 16777215)
-
-        new_w = max(640, m["window_width"])
-        new_h = max(480, m["window_height"])
-
-        # hide, resize, show, to force Qt to redraw the window
-        self.hide()
-        self.resize(new_w, new_h)
-        self.setFixedSize(new_w, new_h)
-
-        self.album_art_label.setMinimumSize(0, 0)
-        self.album_art_label.setMaximumSize(16777215, 16777215)
-        self.album_art_label.setFixedSize(
-            max(120, m["album_art_width"]),
-            max(120, m["album_art_height"]),
-        )
-
-        font_family = theme["typography"].get("font_family", "Courier New")
-        font_size = int(theme["typography"].get("font_size", 10))
-        self.setFont(QFont(font_family, font_size))
-
-        qss = self.theme_manager.build_stylesheet(theme)
+        self.current_theme_path = resolved_path
         self.setStyleSheet(qss)
 
-        self._apply_field_shadow(self.current_song_label, theme["effects"].get("field_shadow", "sunken"))
-        self._apply_field_shadow(self.status_label, theme["effects"].get("status_shadow", "raised"))
-
-        # forgot i need to rerender the album art 
         if self.mixer.current_track_path and os.path.isfile(self.mixer.current_track_path):
             self.update_album_art(self.mixer.current_track_path)
 
-        # force full layout recalculation before showing
-        self.centralWidget().updateGeometry()
-        self.centralWidget().layout().activate()
-        self._refresh_status_display()
-        QTimer.singleShot(0, self.show)
-
         if persist:
             config = load_config()
-            config["qt_theme_path"] = theme_path
+            config["theme_path"] = resolved_path
             save_config(config)
-            
-    def _apply_field_shadow(self, widget, style):
-        widget.setFrameShape(QFrame.Shape.Panel)
-        widget.setLineWidth(1)
-        if style == "raised":
-            widget.setFrameShadow(QFrame.Shadow.Raised)
-        elif style == "plain":
-            widget.setFrameShadow(QFrame.Shadow.Plain)
-        else:
-            widget.setFrameShadow(QFrame.Shadow.Sunken)
+
+        self.update_status(f"Theme loaded: {os.path.basename(resolved_path)}", "success")
+        return True
 
     def browse_folder(self):
         start_dir = self.current_folder if self.current_folder else os.path.expanduser("~")
@@ -402,24 +366,22 @@ class MusicPlayer(QMainWindow):
         save_config(config)
 
     def update_status(self, message, level="default"):
-        self._status_message = message
-        self._status_level = level
-        self._refresh_status_display()
+        self._refresh_status_display(message, level)
 
-    def _refresh_status_display(self):
-        palette = (self.theme or {}).get("palette", {})
-        level = getattr(self, "_status_level", "default")
-        if level == "error":
-            color = palette.get("status_error", "#b00020")
-        elif level == "success":
-            color = palette.get("status_success", "#1b5e20")
-        elif level == "info":
-            color = palette.get("status_info", "#0d47a1")
+    def _refresh_status_display(self, message="", level=""):
+        STATUS_LEVEL_COLORS = {
+            "error": "#c0392b",
+            "success": "#2e7d32",
+            "info": "#1565c0",
+        }
+
+        if level in STATUS_LEVEL_COLORS:
+            color = STATUS_LEVEL_COLORS[level]
         else:
-            color = palette.get("text", "#333333")
-        muted_color = palette.get("muted_text", "#777777")
+            color = self.status_label.palette().color(QPalette.ColorRole.Text).name()
 
-        message = getattr(self, "_status_message", "Ready")
+        muted_color = self.status_label.palette().color(QPalette.ColorGroup.Disabled, QPalette.ColorRole.Text).name()
+
         folder_text = self.current_folder or ""
         if folder_text:
             available_width = max(0, self.width() // 2 - 40)
@@ -491,11 +453,13 @@ class MusicPlayer(QMainWindow):
         thread.start()
 
     def _download_song_thread(self, url):
+        self._title_shown = False
         self.is_downloading = True
         self.status_update.emit("Starting download...", "info")
         self.download_button_state.emit(False, "Downloading...")
         try:
             ffmpeg_path = get_ffmpeg_path()
+            node_path = get_node_path()
             ydl_opts = {
                 "format": "bestaudio/best",
                 "postprocessors": [
@@ -503,19 +467,27 @@ class MusicPlayer(QMainWindow):
                     {"key": "EmbedThumbnail"},
                     {"key": "FFmpegMetadata", "add_metadata": True},
                 ],
+                'no_color': True,
                 "outtmpl": os.path.join(self.current_folder, "%(title)s.%(ext)s"),
                 "writethumbnail": True,
-                "quiet": True,
-                "no_warnings": True,
+                "quiet": False,
+                "no_warnings": False,
+                "js_runtimes": {"deno": {"path": None}, "node": {"path": node_path}},
+                "remote_components": ["ejs:npm"],
+                "source_address": "0.0.0.0",
+                "progress_hooks": [self._progress_hook],
+                "extractor_args": {
+                    "youtube": {
+                        "player_client": ["mweb", "web", "android"],
+                    }
+                },
             }
             if ffmpeg_path:
                 ydl_opts["ffmpeg_location"] = ffmpeg_path
 
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                info = ydl.extract_info(url, download=False)
+                info = ydl.extract_info(url, download=True)
                 video_title = info.get("title", "Unknown")
-                self.status_update.emit(f"Downloading: {video_title[:25]}...", "info")
-                ydl.download([url])
                 downloaded_path = ydl.prepare_filename(info)
 
             self._crop_embedded_thumbnail(downloaded_path)
@@ -523,7 +495,7 @@ class MusicPlayer(QMainWindow):
             self.status_update.emit(f"Downloaded: {video_title[:26]}...", "success")
             self.download_clear_url.emit()
             self.reload_playlist_signal.emit()
-        except Exception as exc:
+        except (DownloadError, ExtractorError) as exc:
             error_msg = str(exc)
             if "Video unavailable" in error_msg:
                 error_msg = "Video is unavailable or private"
@@ -531,12 +503,21 @@ class MusicPlayer(QMainWindow):
                 error_msg = "Network error"
             elif "ffmpeg" in error_msg.lower():
                 error_msg = "Download failed: FFmpeg not found in PATH"
-            else:
-                error_msg = f"Download failed: {error_msg[:20]}..."
-            self.status_update.emit(error_msg, "error")
+            self.status_update.emit("Download", "error")
+            QMessageBox.warning(None, "Error", error_msg)
+        except Exception as exc:
+            self.status_update.emit("Download failed", "error")
+            QMessageBox.warning(None, "Error", f"Unexpected error: {exc}")
         finally:
             self.is_downloading = False
             self.download_button_state.emit(True, "Download")
+
+    def _progress_hook(self, d):
+        if d['status'] == 'downloading' and not getattr(self, '_title_shown', False):
+            title = d.get('info_dict', {}).get('title', 'Unknown')
+            self.status_update.emit(f"Downloading: {title[:25]}...", "info")
+            self._title_shown = True
+
 
     def _set_download_button_state(self, enabled, text):
         self.download_btn.setEnabled(enabled)

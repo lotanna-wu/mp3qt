@@ -10,9 +10,26 @@ pip install -r requirements.txt
 ./scripts/install.sh
 ```
 
+## Native Linux theming (optional)
+By default, `pip`'s PySide6 bundles its own private Qt6 build, which is
+usually a different minor version than the system Qt6 — so Linux platform
+theme integrations like `qt6ct`/kvantum (native dark mode, accent colors,
+etc.) fail to load when no `.qss` theme is set.
+
+To get native theming working when no theme is set, install your distro's
+system PySide6 package (matches your system Qt6) instead of pip's wheel. after that enable system-site-packages in your venv and drop the pip-installed copy so the system one is used:
+```bash
+# edit .venv/pyvenv.cfg: include-system-site-packages = true
+pip uninstall PySide6 PySide6_Addons PySide6_Essentials shiboken6
+pip install -r requirements.local.txt  # everything except PySide6
+```
+
 ## FFmpeg
 - The app uses `ffmpeg` from your system `PATH`
-- If `ffmpeg` is missing, downloads that require conversion will fail and show an error.
+- If `ffmpeg` is missing, downloads that require conversion(which is basically any download) will fail.
+
+## Node.js
+ - Node.js is used in order to properly download from youtube, which requires a JS runtime for the ytdlp-ejs package to complete challenges. I chose Node because I didn't want to install deno, but deno technically is the default. To use the app as is, node should be installed and in your PATH. if you don't wanna use node, edit or remove the js_runtimes option in _download_song_thread (`src/app.py`). Deno is recommended by ytdlp, and I believe it is used by default.
 
 ## PyInstaller builds
 - `pyinstaller linux.spec`

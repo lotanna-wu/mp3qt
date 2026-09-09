@@ -1,0 +1,119 @@
+
+QWidget {
+    color: #f0f0f0;
+    font-family: "Courier New";
+    font-size: 10pt;
+}
+#rootWidget {
+    background-color: #0f1011;
+}
+QLabel {
+    background: transparent;
+}
+#albumArt {
+    background-color: #14161a;
+    border: 1px solid #5d6666;
+    border-radius: 0px;
+}
+#songLabel, #statusLabel {
+    background-color: #14161a;
+    border: 1px solid #5d6666;
+    border-radius: 0px;
+    padding: 4px 8px;
+}
+QLineEdit, QListWidget {
+    background-color: #070809;
+    border: 1px solid #5d6666;
+    border-radius: 0px;
+    padding: 4px;
+    selection-background-color: #58d968;
+    selection-color: #041008;
+}
+QListWidget {
+    font-size: 10pt;
+}
+QPushButton {
+    background-color: #1a1c1f;
+    color: #f0f0f0;
+    border: 1px solid #5d6666;
+    border-radius: 0px;
+    padding: 5px 10px;
+}
+QPushButton:hover {
+    background-color: #14161a;
+}
+QPushButton:pressed {
+    padding-left: 6px;
+    padding-top: 6px;
+}
+#downloadButton, #shuffleButton {
+    background-color: #58d968;
+    color: #040705;
+}
+#downloadButton:hover, #shuffleButton:hover {
+    background-color: #88f096;
+}
+#playButton {
+    background-color: #f0c200;
+    color: #040705;
+}
+#playButton:hover {
+    background-color: #ffd633;
+}
+QMenuBar {
+    background-color: #1a1c1f;
+    border: 1px solid #5d6666;
+}
+QMenu {
+    background-color: #1a1c1f;
+    border: 1px solid #5d6666;
+}
+QScrollBar:vertical {
+    background: #0f1011;
+    width: 12px;
+    margin: 0;
+}
+QScrollBar::handle:vertical {
+    background: #58d968;
+    border: 1px solid #5d6666;
+    min-height: 24px;
+}
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+    background: #1a1c1f;
+    border: 1px solid #5d6666;
+    height: 12px;
+}
+QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
+    background: #14161a;
+}
+QScrollBar:horizontal {
+    background: #0f1011;
+    height: 12px;
+    margin: 0;
+}
+QScrollBar::handle:horizontal {
+    background: #58d968;
+    border: 1px solid #5d6666;
+    min-width: 24px;
+}
+QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {
+    background: #1a1c1f;
+    border: 1px solid #5d6666;
+    width: 12px;
+}
+QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal {
+    background: #14161a;
+}
+QSlider::groove:horizontal {
+    border: 1px solid #5d6666;
+    height: 8px;
+    background: #14161a;
+}
+QSlider::handle:horizontal {
+    background: #58d968;
+    border: 1px solid #5d6666;
+    width: 14px;
+    margin: -4px 0;
+}
+
+QPushButton { text-transform: uppercase; }

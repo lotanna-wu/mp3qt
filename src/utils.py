@@ -8,6 +8,8 @@ APP_NAME = "mp3qt"
 def get_ffmpeg_path():
     return shutil.which("ffmpeg")
 
+def get_node_path(): # needed for youtube installs
+    return shutil.which("node")
 def get_app_config_dir():
     if sys.platform == "win32":
         base_dir = os.environ.get("APPDATA")
