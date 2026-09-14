@@ -139,6 +139,10 @@ class Mixer(QObject):
     def current_track_length_us(self):
         return self.current_song.track_length_us
 
+    @property
+    def current_position_us(self):
+        return self.player.position() * 1000
+
     def is_playing(self):
         return self.player.playbackState() == QMediaPlayer.PlaybackState.PlayingState
     

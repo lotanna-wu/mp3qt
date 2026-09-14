@@ -60,6 +60,10 @@ class MprisRootAdaptor(QDBusAbstractAdaptor):
             <method name="Pause"/>
             <method name="PlayPause"/>
             <property name="PlaybackStatus" type="s" access="read"/>
+            <property name="Rate" type="d" access="read"/>
+            <property name="MinimumRate" type="d" access="read"/>
+            <property name="MaximumRate" type="d" access="read"/>
+            <property name="Position" type="x" access="read"/>
             <property name="Metadata" type="a{sv}" access="read"/>
             <property name="CanControl" type="b" access="read"/>
             <property name="CanGoNext" type="b" access="read"/>
@@ -83,6 +87,22 @@ class MprisPlayerAdaptor(QDBusAbstractAdaptor):
         elif self._window.mixer.is_playing():
             return "Playing"
         return "Stopped"
+
+    @Property(float)
+    def Rate(self):
+        return 1.0
+
+    @Property(float)
+    def MinimumRate(self):
+        return 1.0
+
+    @Property(float)
+    def MaximumRate(self):
+        return 1.0
+
+    @Property("qlonglong")
+    def Position(self):
+        return self._window.mixer.current_position_us
 
     @Property("QVariantMap")
     def Metadata(self):

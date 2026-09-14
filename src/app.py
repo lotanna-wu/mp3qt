@@ -52,13 +52,12 @@ from theme_manager import ThemeError, ThemeManager
 
 if IS_LINUX:
     from PySide6.QtDBus import QDBusConnection
-    from PySide6.QtDBus import QDBusMessage, QDBusObjectPath, QDBusVariant
+    from PySide6.QtDBus import QDBusMessage, QDBusObjectPath
     from mpris import MprisPlayerAdaptor, MprisRootAdaptor
 else:
     QDBusConnection = None
     QDBusMessage = None
     QDBusObjectPath = None
-    QDBusVariant = None
 
 class MusicPlayer(QMainWindow):
     status_update = Signal(str, str)
@@ -935,10 +934,6 @@ class MusicPlayer(QMainWindow):
         if not self._mpris_obj:
             return
 
-        changed_properties = {
-            key: QDBusVariant(value)
-            for key, value in changed_properties.items()
-        }
         message = QDBusMessage.createSignal(
             "/org/mpris/MediaPlayer2",
             "org.freedesktop.DBus.Properties",
